@@ -242,4 +242,14 @@
 
     <string name="dark_theme">Dark theme</string>
 
+    <string name="service_tile_unlock">Tile service for unlocking from your phone or tablet</string>
+    <string name="label_qs_unlock">Unlock Computer</string>
+    <string name="desc_qs_unlock">Unlock using android fingerprint sensor</string>
+    <string name="title_fp_unlock_diag">Touch Sensor</string>
+    <string name="mesg_fp_unlock_diag">Touch the fingerprint sensor to unlock your computer. KDEConnect will unlock the paired computer after successful identification</string>
+    <string name="mesg_auth_success">Authentication successful</string>
+    <string name="mesg_auth_fail">Authentication failed</string>
+    <string name="mesg_app_discon">KDEconnect is disconnected</string>
+    <string name="mesg_sec_exc">Security Exception. Try Again</string>
+
 </resources>
