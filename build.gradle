@@ -65,22 +65,25 @@ android {
 }
 
 dependencies {
+
     repositories {
         jcenter()
         google()
     }
+
     implementation 'com.android.support:support-v4:25.4.0'
     implementation 'com.android.support:appcompat-v7:25.4.0'
     implementation 'com.android.support:design:25.4.0'
-    implementation 'com.jakewharton:disklrucache:2.0.2'
-    //For caching album art bitmaps
-    implementation 'org.apache.sshd:sshd-core:0.8.0'
-    //0.9 seems to fail on Android 6 and 1.+ requires java.nio.file, which doesn't exist in Android
-    implementation 'com.madgag.spongycastle:pkix:1.54.0.0'
-    //For SSL certificate generation
+    implementation 'com.jakewharton:disklrucache:2.0.2' //For caching album art bitmaps
+
+    implementation 'org.apache.sshd:sshd-core:0.8.0' //0.9 seems to fail on Android 6 and 1.+ requires java.nio.file, which doesn't exist in Android
+
+    implementation 'com.madgag.spongycastle:pkix:1.54.0.0' //For SSL certificate generation
+
     // Testing
     androidTestImplementation 'org.mockito:mockito-core:1.10.19'
-    androidTestImplementation 'com.google.dexmaker:dexmaker-mockito:1.1'
-    // Because mockito has some problems with dex environment
+    androidTestImplementation 'com.google.dexmaker:dexmaker-mockito:1.1'// Because mockito has some problems with dex environment
     androidTestImplementation 'org.skyscreamer:jsonassert:1.3.0'
+    testImplementation 'junit:junit:4.12'
+
 }
