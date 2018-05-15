@@ -227,7 +227,7 @@
         </activity>
 
         <service
-            android:name="org.kde.kdeconnect.Plugins.LockPlugin.TileService"
+            android:name="org.kde.kdeconnect.Plugins.LockPlugin.LockTileService"
             android:label="@string/service_tile_unlock"
             android:icon="@drawable/ic_fingerprint_black_24dp"
             android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">

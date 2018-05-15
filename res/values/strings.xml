@@ -251,5 +251,8 @@
     <string name="mesg_auth_fail">Authentication failed</string>
     <string name="mesg_app_discon">KDEconnect is disconnected</string>
     <string name="mesg_sec_exc">Security Exception. Try Again</string>
+    <string name="pref_plugin_lock">UnLock Plugin</string>
+    <string name="pref_plugin_lock_desc">Unlock remote device from android</string>
+    <string name="lock">Lock</string>
 
 </resources>

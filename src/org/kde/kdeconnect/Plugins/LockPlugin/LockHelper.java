@@ -3,7 +3,6 @@ package org.kde.kdeconnect.Plugins.LockPlugin;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.hardware.fingerprint.FingerprintManager;
 import android.os.Build;
 import android.os.CancellationSignal;
@@ -12,13 +11,7 @@ import android.security.keystore.KeyPermanentlyInvalidatedException;
 import android.security.keystore.KeyProperties;
 import android.support.annotation.RequiresApi;
 import android.util.Log;
-import android.widget.Toast;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-import org.kde.kdeconnect.BackgroundService;
-import org.kde.kdeconnect.Device;
-import org.kde.kdeconnect.Plugins.RunCommandPlugin.RunCommandPlugin;
 import org.kde.kdeconnect_tp.R;
 
 import java.io.IOException;
@@ -30,6 +23,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
+import java.util.ArrayList;
 import java.util.UUID;
 
 import javax.crypto.Cipher;
@@ -40,40 +34,57 @@ import javax.crypto.SecretKey;
 @RequiresApi(api = Build.VERSION_CODES.N)
 public class LockHelper extends FingerprintManager.AuthenticationCallback {
 
+    public interface LockCallback {
+        void onSuccess();
+        void onFailure();
+        void onError(int errCode, CharSequence errString);
+    }
+
     private static final String KEY_NAME = UUID.randomUUID().toString();
-    private static final String STATE_SELECTED_DEVICE = "selected_device";
     private static final String TAG = LockHelper.class.getSimpleName();
+
+    private static volatile LockHelper mLockHelper;
+    private ArrayList<LockCallback> callbacks = new ArrayList<>();
+
+    public void addLockCallback(LockCallback newCallback) {
+        callbacks.add(newCallback);
+    }
+
+    public void removeLockCallback(LockCallback oldCallback) {
+        callbacks.remove(oldCallback);
+    }
 
 
     private Dialog mDialog;
-    private Context mContext;
 
     // fp stuff
     private KeyStore mKeyStore;
     private Cipher mCipher;
     private CancellationSignal mCancellationSignal;
 
-    private boolean unlocked = false;
 
-    LockHelper(Context context) {
-        this.mContext = context;
-        this.mDialog = new AlertDialog.Builder(context).setTitle(R.string.title_fp_unlock_diag)
-                .setMessage(mContext.getString(R.string.mesg_fp_unlock_diag))
+    private LockHelper(Context context) {
+        if (mLockHelper != null) {
+            throw new RuntimeException("Use getInstance()");
+        }
+
+        this.mDialog = new AlertDialog.Builder(context)
+                .setTitle(R.string.title_fp_unlock_diag)
+                .setMessage(R.string.mesg_fp_unlock_diag)
                 .setIcon(R.drawable.ic_fingerprint_black_24dp)
-                .setOnDismissListener(new DialogInterface.OnDismissListener() {
-                    @Override
-                    public void onDismiss(DialogInterface dialog) {
-                        onAuthenticationFailed();
-                    }
-                })
-                .setNeutralButton(mContext.getString(R.string.cancel), new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        dialog.dismiss();
-                        onAuthenticationFailed();
-                    }
+                .setOnDismissListener(dialog -> onAuthenticationFailed())
+                .setNeutralButton(R.string.cancel, (dialog, which) -> {
+                    dialog.dismiss();
+                    onAuthenticationFailed();
                 })
                 .create();
+    }
+
+    public synchronized static LockHelper getInstance(Context context) {
+        if(mLockHelper == null) {
+            mLockHelper = new LockHelper(context);
+        }
+        return mLockHelper;
     }
 
     boolean shouldAuth() {
@@ -159,6 +170,10 @@ public class LockHelper extends FingerprintManager.AuthenticationCallback {
         super.onAuthenticationError(errorCode, errString);
         mDialog.dismiss();
         Log.e(TAG, "onAuthenticationError: " + errString);
+        for (LockCallback c :
+                callbacks) {
+            c.onError(errorCode, errString);
+        }
         onAuthenticationFailed();
     }
 
@@ -172,12 +187,9 @@ public class LockHelper extends FingerprintManager.AuthenticationCallback {
         super.onAuthenticationSucceeded(result);
         mDialog.setOnDismissListener(null);
         mDialog.dismiss();
-        if(unlockComputer()) {
-            Toast.makeText(mContext, R.string.mesg_auth_success, Toast.LENGTH_SHORT).show();
-        }
-        if (mCancellationSignal != null) {
-            mCancellationSignal.cancel();
-            mCancellationSignal = null;
+        for (LockCallback c :
+                callbacks) {
+            c.onSuccess();
         }
     }
 
@@ -185,44 +197,14 @@ public class LockHelper extends FingerprintManager.AuthenticationCallback {
     public void onAuthenticationFailed() {
         super.onAuthenticationFailed();
         mDialog.dismiss();
-        Toast.makeText(mContext, R.string.mesg_auth_fail, Toast.LENGTH_SHORT).show();
+        for (LockCallback c :
+                callbacks) {
+            c.onFailure();
+        }
         if (mCancellationSignal != null) {
             mCancellationSignal.cancel();
             mCancellationSignal = null;
         }
-    }
-
-    boolean unlockComputer() {
-        BackgroundService.RunCommand(mContext, new BackgroundService.InstanceCallback() {
-            @Override
-            public void onServiceStart(BackgroundService service) {
-                //TODO: don't piggyback on runcommand
-                String deviceId = mContext.getSharedPreferences(STATE_SELECTED_DEVICE,
-                        Context.MODE_PRIVATE)
-                        .getString(STATE_SELECTED_DEVICE, null);
-                Device device = service.getDevice(deviceId);
-                RunCommandPlugin plugin = device.getPlugin(RunCommandPlugin.class);
-                if (plugin == null) {
-                    Toast.makeText(mContext, R.string.mesg_app_discon, Toast.LENGTH_SHORT).show();
-                    unlocked = false;
-                    return;
-                }
-                for (JSONObject obj : plugin.getCommandList()) {
-                    try {
-                        // ideally there should only be one command named "unlock"
-                        // all of them are executed though
-                        // command: loginctl unlock-session
-                        if(obj.getString("name").equals("unlock")) {
-                            plugin.runCommand(obj.getString("key"));
-                        }
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
-                }
-                unlocked = true;
-            }
-        });
-        return  unlocked;
     }
 
     public void pleaseAuthenticate(FingerprintManager manager) {
@@ -236,7 +218,11 @@ public class LockHelper extends FingerprintManager.AuthenticationCallback {
                     mCancellationSignal, 0, this, null);
         } catch (SecurityException e) {
             mDialog.dismiss();
-            Toast.makeText(mContext, R.string.mesg_sec_exc, Toast.LENGTH_SHORT).show();
+            for (LockCallback c :
+                    callbacks) {
+                c.onError(-32, e.getMessage());
+            }
+            Log.e(TAG, "pleaseAuthenticate: ", e);
         }
     }
 }
