@@ -3,15 +3,10 @@ package org.kde.kdeconnect.UserInterface;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.os.Build;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
-import android.support.annotation.NonNull;
-import android.support.annotation.RequiresApi;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.Fragment;
 import android.support.v4.view.GravityCompat;
@@ -19,15 +14,13 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.SwitchCompat;
 import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.SubMenu;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.TextView;
 
@@ -38,10 +31,18 @@ import org.kde.kdeconnect_tp.R;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
 
 public class MainActivity extends AppCompatActivity {
 
-    private static final String STATE_SELECTED_DEVICE = "selected_device";
+    private static final int MENU_ENTRY_ADD_DEVICE = 1; //0 means no-selection
+    private static final int MENU_ENTRY_SETTINGS = 2;
+    private static final int MENU_ENTRY_DEVICE_FIRST_ID = 1000; //All subsequent ids are devices in the menu
+    private static final int MENU_ENTRY_DEVICE_UNKNOWN = 9999; //It's still a device, but we don't know which one yet
+
+    private static final String STATE_SELECTED_MENU_ENTRY = "selected_entry"; //Saved only in onSaveInstanceState
+    private static final String STATE_SELECTED_DEVICE = "selected_device"; //Saved persistently in preferences
 
     public static final int RESULT_NEEDS_RELOAD = Activity.RESULT_FIRST_USER;
 
@@ -53,10 +54,12 @@ public class MainActivity extends AppCompatActivity {
     private DrawerLayout mDrawerLayout;
 
     private String mCurrentDevice;
+    private int mCurrentMenuEntry;
 
     private SharedPreferences preferences;
 
     private final HashMap<MenuItem, String> mMapMenuToDeviceId = new HashMap<>();
+    private String pairRequestStatus;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,11 +69,11 @@ public class MainActivity extends AppCompatActivity {
         ThemeUtil.setUserPreferredTheme(this);
 
         setContentView(R.layout.activity_main);
-        mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
-        mNavigationView = (NavigationView) findViewById(R.id.navigation_drawer);
+        mDrawerLayout = findViewById(R.id.drawer_layout);
+        mNavigationView = findViewById(R.id.navigation_drawer);
         View mDrawerHeader = mNavigationView.getHeaderView(0);
 
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
         ActionBar actionBar = getSupportActionBar();
@@ -89,110 +92,112 @@ public class MainActivity extends AppCompatActivity {
         mDrawerToggle.syncState();
 
         String deviceName = DeviceHelper.getDeviceName(this);
-        TextView nameView = (TextView) mDrawerHeader.findViewById(R.id.device_name);
+        TextView nameView = mDrawerHeader.findViewById(R.id.device_name);
         nameView.setText(deviceName);
 
-        View.OnClickListener renameListener = new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                renameDevice();
+        preferences = getSharedPreferences("stored_menu_selection", Context.MODE_PRIVATE);
+
+        mNavigationView.setNavigationItemSelectedListener(menuItem -> {
+            mCurrentMenuEntry = menuItem.getItemId();
+            switch (mCurrentMenuEntry) {
+                case MENU_ENTRY_ADD_DEVICE:
+                    mCurrentDevice = null;
+                    preferences.edit().putString(STATE_SELECTED_DEVICE, null).apply();
+                    setContentFragment(new PairingFragment());
+                    break;
+                case MENU_ENTRY_SETTINGS:
+                    mCurrentDevice = null;
+                    preferences.edit().putString(STATE_SELECTED_DEVICE, null).apply();
+                    setContentFragment(new SettingsFragment());
+                    break;
+                default:
+                    String deviceId = mMapMenuToDeviceId.get(menuItem);
+                    onDeviceSelected(deviceId);
+                    break;
             }
-        };
-        mDrawerHeader.findViewById(R.id.kdeconnect_label).setOnClickListener(renameListener);
-        mDrawerHeader.findViewById(R.id.device_name).setOnClickListener(renameListener);
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
-            addDarkModeSwitch((ViewGroup) mDrawerHeader);
-        }
-
-        mNavigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
-            @Override
-            public boolean onNavigationItemSelected(MenuItem menuItem) {
-
-                String deviceId = mMapMenuToDeviceId.get(menuItem);
-                onDeviceSelected(deviceId);
-
-                mDrawerLayout.closeDrawer(mNavigationView);
-
-                return true;
-            }
+            mDrawerLayout.closeDrawer(mNavigationView);
+            return true;
         });
 
-        preferences = getSharedPreferences(STATE_SELECTED_DEVICE, Context.MODE_PRIVATE);
+        // Decide which menu entry should be selected at start
 
         String savedDevice;
-        String pairStatus = "";
+        int savedMenuEntry;
         if (getIntent().hasExtra("forceOverview")) {
             Log.i("MainActivity", "Requested to start main overview");
             savedDevice = null;
+            savedMenuEntry = MENU_ENTRY_ADD_DEVICE;
         } else if (getIntent().hasExtra("deviceId")) {
             Log.i("MainActivity", "Loading selected device from parameter");
             savedDevice = getIntent().getStringExtra("deviceId");
-            if (getIntent().hasExtra(PAIR_REQUEST_STATUS)) {
-                pairStatus = getIntent().getStringExtra(PAIR_REQUEST_STATUS);
+            savedMenuEntry = MENU_ENTRY_DEVICE_UNKNOWN;
+            // If pairStatus is not empty, then the user has accepted/reject the pairing from the notification
+            String pairStatus = getIntent().getStringExtra(PAIR_REQUEST_STATUS);
+            if (pairStatus != null) {
+                Log.i("MainActivity", "pair status is " + pairStatus);
+                savedDevice = onPairResultFromNotification(savedDevice, pairStatus);
+                if (savedDevice == null) {
+                    savedMenuEntry = MENU_ENTRY_ADD_DEVICE;
+                }
             }
         } else if (savedInstanceState != null) {
             Log.i("MainActivity", "Loading selected device from saved activity state");
             savedDevice = savedInstanceState.getString(STATE_SELECTED_DEVICE);
+            savedMenuEntry = savedInstanceState.getInt(STATE_SELECTED_MENU_ENTRY, MENU_ENTRY_ADD_DEVICE);
         } else {
             Log.i("MainActivity", "Loading selected device from persistent storage");
             savedDevice = preferences.getString(STATE_SELECTED_DEVICE, null);
+            savedMenuEntry = (savedDevice != null)? MENU_ENTRY_DEVICE_UNKNOWN : MENU_ENTRY_ADD_DEVICE;
         }
-        //if pairStatus is not empty, then the decision has been made...
-        if (!pairStatus.equals("")) {
-            Log.i("MainActivity", "pair status is " + pairStatus);
-            onNewDeviceSelected(savedDevice, pairStatus);
+
+
+        // Activate the chosen fragment and select the entry in the menu
+
+        if (savedMenuEntry >= MENU_ENTRY_DEVICE_FIRST_ID && savedDevice != null) {
+            onDeviceSelected(savedDevice);
+        } else {
+            mCurrentMenuEntry = savedMenuEntry;
+            mNavigationView.setCheckedItem(savedMenuEntry);
+            if (mCurrentMenuEntry == MENU_ENTRY_SETTINGS) {
+                setContentFragment(new SettingsFragment());
+            } else {
+                setContentFragment(new PairingFragment());
+            }
         }
-        onDeviceSelected(savedDevice);
     }
 
-    /**
-     * Adds a {@link SwitchCompat} to the bottom of the navigation header for
-     * toggling dark mode on and off. Call from {@link #onCreate(Bundle)}.
-     * <p>
-     *     Only supports android ICS and higher because {@link SwitchCompat}
-     *     requires that.
-     * </p>
-     *
-     * @param drawerHeader the layout which should contain the switch
-     */
-    @RequiresApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
-    private void addDarkModeSwitch(ViewGroup drawerHeader) {
-        getLayoutInflater().inflate(R.layout.nav_dark_mode_switch, drawerHeader);
+    private String onPairResultFromNotification(String deviceId, String pairStatus) {
+        assert(deviceId != null);
 
-        SwitchCompat darkThemeSwitch = (SwitchCompat) drawerHeader.findViewById(R.id.dark_theme);
-        darkThemeSwitch.setChecked(ThemeUtil.shouldUseDarkTheme(this));
-        darkThemeSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @RequiresApi(Build.VERSION_CODES.HONEYCOMB)
-            @Override
-            public void onCheckedChanged(CompoundButton darkThemeSwitch, boolean isChecked) {
-                SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
-                boolean isDarkAlready = prefs.getBoolean("darkTheme", false);
-                if (isDarkAlready != isChecked) {
-                    prefs.edit().putBoolean("darkTheme", isChecked).apply();
-                    MainActivity.this.recreate();
-                }
+        BackgroundService.RunCommand(this, service -> {
+            Device device = service.getDevice(deviceId);
+            if (device == null) {
+                Log.w("rejectPairing", "Device no longer exists: " + deviceId);
+                return;
+            }
+
+            if (pairStatus.equals(PAIRING_ACCEPTED)) {
+                device.acceptPairing();
+            } else {
+                device.rejectPairing();
             }
         });
-    }
-
-    //like onNewDeviceSelected but assumes that the new device is simply requesting to be paired
-    //and can't be null
-    private void onNewDeviceSelected(String deviceId, String pairStatus) {
-        mCurrentDevice = deviceId;
-
-        preferences.edit().putString(STATE_SELECTED_DEVICE, mCurrentDevice).apply();
-
-        for (HashMap.Entry<MenuItem, String> entry : mMapMenuToDeviceId.entrySet()) {
-            boolean selected = TextUtils.equals(entry.getValue(), deviceId); //null-safe
-            entry.getKey().setChecked(selected);
-        }
 
         if (pairStatus.equals(PAIRING_ACCEPTED)) {
-            DeviceFragment.acceptPairing(deviceId, this);
+            return deviceId;
         } else {
-            DeviceFragment.rejectPairing(deviceId, this);
+            return null;
         }
+    }
+
+    private int deviceIdToMenuEntryId(String deviceId) {
+        for (HashMap.Entry<MenuItem, String> entry : mMapMenuToDeviceId.entrySet()) {
+            if (TextUtils.equals(entry.getValue(), deviceId)) { //null-safe
+                return entry.getKey().getItemId();
+            }
+        }
+        return MENU_ENTRY_DEVICE_UNKNOWN;
     }
 
     @Override
@@ -214,91 +219,91 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void updateComputerList() {
+    private void updateDeviceList() {
 
-        //Log.e("MainActivity", "UpdateComputerList");
+        BackgroundService.RunCommand(MainActivity.this, service -> {
 
-        BackgroundService.RunCommand(MainActivity.this, new BackgroundService.InstanceCallback() {
-            @Override
-            public void onServiceStart(final BackgroundService service) {
+            Menu menu = mNavigationView.getMenu();
+            menu.clear();
+            mMapMenuToDeviceId.clear();
 
-                Menu menu = mNavigationView.getMenu();
+            SubMenu devicesMenu = menu.addSubMenu(R.string.devices);
 
-                menu.clear();
-                mMapMenuToDeviceId.clear();
-
-                int id = 0;
-                Collection<Device> devices = service.getDevices().values();
-                for (Device device : devices) {
-                    if (device.isReachable() && device.isPaired()) {
-                        MenuItem item = menu.add(0, id++, 0, device.getName());
-                        item.setIcon(device.getIcon());
-                        item.setCheckable(true);
-                        item.setChecked(device.getDeviceId().equals(mCurrentDevice));
-                        mMapMenuToDeviceId.put(item, device.getDeviceId());
-                    }
+            int id = MENU_ENTRY_DEVICE_FIRST_ID;
+            Collection<Device> devices = service.getDevices().values();
+            for (Device device : devices) {
+                if (device.isReachable() && device.isPaired()) {
+                    MenuItem item = devicesMenu.add(Menu.FIRST, id++, 1, device.getName());
+                    item.setIcon(device.getIcon());
+                    item.setCheckable(true);
+                    mMapMenuToDeviceId.put(item, device.getDeviceId());
                 }
-
-                MenuItem item = menu.add(99, id++, 0, R.string.pair_new_device);
-                item.setIcon(R.drawable.ic_action_content_add_circle_outline);
-                item.setCheckable(true);
-                item.setChecked(mCurrentDevice == null);
-                mMapMenuToDeviceId.put(item, null);
             }
+
+            MenuItem addDeviceItem = devicesMenu.add(Menu.FIRST, MENU_ENTRY_ADD_DEVICE, 1000, R.string.pair_new_device);
+            addDeviceItem.setIcon(R.drawable.ic_action_content_add_circle_outline);
+            addDeviceItem.setCheckable(true);
+
+            MenuItem settingsItem = menu.add(Menu.FIRST, MENU_ENTRY_SETTINGS, 1000, R.string.settings);
+            settingsItem.setIcon(R.drawable.ic_action_settings);
+            settingsItem.setCheckable(true);
+
+            //Ids might have changed
+            if (mCurrentMenuEntry >= MENU_ENTRY_DEVICE_FIRST_ID) {
+                mCurrentMenuEntry = deviceIdToMenuEntryId(mCurrentDevice);
+            }
+            mNavigationView.setCheckedItem(mCurrentMenuEntry);
         });
     }
+
 
     @Override
     protected void onStart() {
         super.onStart();
         BackgroundService.addGuiInUseCounter(this, true);
-        BackgroundService.RunCommand(this, new BackgroundService.InstanceCallback() {
-            @Override
-            public void onServiceStart(BackgroundService service) {
-                service.addDeviceListChangedCallback("MainActivity", new BackgroundService.DeviceListChangedCallback() {
-                    @Override
-                    public void onDeviceListChanged() {
-                        updateComputerList();
-                    }
-                });
-            }
-        });
-        updateComputerList();
+        BackgroundService.RunCommand(this, service -> service.addDeviceListChangedCallback("MainActivity", this::updateDeviceList));
+        updateDeviceList();
     }
 
     @Override
     protected void onStop() {
         BackgroundService.removeGuiInUseCounter(this);
-        BackgroundService.RunCommand(this, new BackgroundService.InstanceCallback() {
-            @Override
-            public void onServiceStart(BackgroundService service) {
-                service.removeDeviceListChangedCallback("MainActivity");
-            }
-        });
+        BackgroundService.RunCommand(this, service -> service.removeDeviceListChangedCallback("MainActivity"));
         super.onStop();
     }
 
-    //TODO: Make it accept two parameters, a constant with the type of screen and the device id in
-    //case the screen is for a device, or even three parameters and the third one be the plugin id?
-    //This way we can keep adding more options with null device id (eg: about, help...)
+    private static void uncheckAllMenuItems(Menu menu) {
+        int size = menu.size();
+        for (int i = 0; i < size; i++) {
+            MenuItem item = menu.getItem(i);
+            if(item.hasSubMenu()) {
+                uncheckAllMenuItems(item.getSubMenu());
+            } else {
+                item.setChecked(false);
+            }
+        }
+    }
+
     public void onDeviceSelected(String deviceId, boolean fromDeviceList) {
-
         mCurrentDevice = deviceId;
+        preferences.edit().putString(STATE_SELECTED_DEVICE, deviceId).apply();
 
-        preferences.edit().putString(STATE_SELECTED_DEVICE, mCurrentDevice).apply();
-
-        for (HashMap.Entry<MenuItem, String> entry : mMapMenuToDeviceId.entrySet()) {
-            boolean selected = TextUtils.equals(entry.getValue(), deviceId); //null-safe
-            entry.getKey().setChecked(selected);
-        }
-
-        Fragment fragment;
-        if (deviceId == null) {
-            fragment = new PairingFragment();
+        if (mCurrentDevice != null) {
+            mCurrentMenuEntry = deviceIdToMenuEntryId(deviceId);
+            if (mCurrentMenuEntry == MENU_ENTRY_DEVICE_UNKNOWN) {
+                uncheckAllMenuItems(mNavigationView.getMenu());
+            } else {
+                mNavigationView.setCheckedItem(mCurrentMenuEntry);
+            }
+            setContentFragment(new DeviceFragment(deviceId, fromDeviceList));
         } else {
-            fragment = new DeviceFragment(deviceId, fromDeviceList);
+            mCurrentMenuEntry = MENU_ENTRY_ADD_DEVICE;
+            mNavigationView.setCheckedItem(mCurrentMenuEntry);
+            setContentFragment(new PairingFragment());
         }
+    }
 
+    private void setContentFragment(Fragment fragment) {
         getSupportFragmentManager()
                 .beginTransaction()
                 .replace(R.id.container, fragment)
@@ -313,25 +318,16 @@ public class MainActivity extends AppCompatActivity {
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putString(STATE_SELECTED_DEVICE, mCurrentDevice);
-    }
-
-    @Override
-    protected void onRestoreInstanceState(@NonNull Bundle savedInstanceState) {
-        super.onRestoreInstanceState(savedInstanceState);
-        String savedDevice = savedInstanceState.getString(STATE_SELECTED_DEVICE);
-        onDeviceSelected(savedDevice);
+        outState.putInt(STATE_SELECTED_MENU_ENTRY, mCurrentMenuEntry);
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         switch (requestCode) {
             case RESULT_NEEDS_RELOAD:
-                BackgroundService.RunCommand(this, new BackgroundService.InstanceCallback() {
-                    @Override
-                    public void onServiceStart(BackgroundService service) {
-                        Device device = service.getDevice(mCurrentDevice);
-                        device.reloadPluginsFromSettings();
-                    }
+                BackgroundService.RunCommand(this, service -> {
+                    Device device = service.getDevice(mCurrentDevice);
+                    device.reloadPluginsFromSettings();
                 });
                 break;
             default:
@@ -344,50 +340,53 @@ public class MainActivity extends AppCompatActivity {
         for (int result : grantResults) {
             if (result == PackageManager.PERMISSION_GRANTED) {
                 //New permission granted, reload plugins
-                BackgroundService.RunCommand(this, new BackgroundService.InstanceCallback() {
-                    @Override
-                    public void onServiceStart(BackgroundService service) {
-                        Device device = service.getDevice(mCurrentDevice);
-                        device.reloadPluginsFromSettings();
-                    }
+                BackgroundService.RunCommand(this, service -> {
+                    Device device = service.getDevice(mCurrentDevice);
+                    device.reloadPluginsFromSettings();
                 });
             }
         }
     }
 
-    public void renameDevice() {
-        final TextView nameView = (TextView) mNavigationView.findViewById(R.id.device_name);
-        final EditText deviceNameEdit = new EditText(MainActivity.this);
-        String deviceName = DeviceHelper.getDeviceName(MainActivity.this);
+
+    interface NameChangeCallback {
+        void onNameChanged(String newName);
+    }
+
+    private final Set<NameChangeCallback> nameChangeSubscribers = new HashSet<>();
+
+    public void addNameChangeCallback(NameChangeCallback cb) {
+        nameChangeSubscribers.add(cb);
+    }
+
+    public void removeNameChangeCallback(NameChangeCallback cb) {
+        nameChangeSubscribers.remove(cb);
+    }
+
+    public void openRenameDeviceDialog() {
+        final EditText deviceNameEdit = new EditText(this);
+        String deviceName = DeviceHelper.getDeviceName(this);
         deviceNameEdit.setText(deviceName);
-        deviceNameEdit.setPadding(
-                ((int) (18 * getResources().getDisplayMetrics().density)),
-                ((int) (16 * getResources().getDisplayMetrics().density)),
-                ((int) (18 * getResources().getDisplayMetrics().density)),
-                ((int) (12 * getResources().getDisplayMetrics().density))
-        );
-        new AlertDialog.Builder(MainActivity.this)
+        float dpi = this.getResources().getDisplayMetrics().density;
+        deviceNameEdit.setPadding( ((int) (18 * dpi)), ((int) (16 * dpi)), ((int) (18 * dpi)), ((int) (12 * dpi)) );
+        new AlertDialog.Builder(this)
                 .setView(deviceNameEdit)
-                .setPositiveButton(R.string.device_rename_confirm, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        String deviceName = deviceNameEdit.getText().toString();
-                        DeviceHelper.setDeviceName(MainActivity.this, deviceName);
-                        nameView.setText(deviceName);
-                        BackgroundService.RunCommand(MainActivity.this, new BackgroundService.InstanceCallback() {
-                            @Override
-                            public void onServiceStart(final BackgroundService service) {
-                                service.onNetworkChange();
-                            }
-                        });
+                .setPositiveButton(R.string.device_rename_confirm, (dialog, which) -> {
+                    String newDeviceName = deviceNameEdit.getText().toString();
+                    DeviceHelper.setDeviceName(this, newDeviceName);
+                    this.updateDeviceNameFromMenu(newDeviceName);
+                    BackgroundService.RunCommand(this, BackgroundService::onNetworkChange);
+                    for (NameChangeCallback callback : nameChangeSubscribers) {
+                        callback.onNameChanged(newDeviceName);
                     }
                 })
-                .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                    }
-                })
+                .setNegativeButton(R.string.cancel, (dialog, which) -> { })
                 .setTitle(R.string.device_rename_title)
                 .show();
+    }
+
+    private void updateDeviceNameFromMenu(String newDeviceName) {
+        final TextView nameView = mNavigationView.findViewById(R.id.device_name);
+        nameView.setText(newDeviceName);
     }
 }

@@ -1,7 +1,10 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
+  <string name="kde_connect">KDE Connect</string>
+  <string name="foreground_notification_no_devices">Не з\'єднано із жодним пристроєм</string>
+  <string name="foreground_notification_devices">З\'єднано з %s</string>
   <string name="pref_plugin_telephony">Телефонний сповіщувач</string>
-  <string name="pref_plugin_telephony_desc">Надсилання сповіщень щодо SMS та дзвінків</string>
+  <string name="pref_plugin_telephony_desc">Надсилати сповіщення щодо вхідних дзвінків</string>
   <string name="pref_plugin_battery">Звіт щодо заряду</string>
   <string name="pref_plugin_battery_desc">Періодична інформація щодо стану акумулятора</string>
   <string name="pref_plugin_sftp">Показ файлової системи</string>
@@ -10,12 +13,16 @@
   <string name="pref_plugin_clipboard_desc">Спільне використання буфера обміну даними</string>
   <string name="pref_plugin_mousepad">Дистанційне введення</string>
   <string name="pref_plugin_mousepad_desc">Скористайтеся телефоном або планшетом як замінником сенсорної панелі і клавіатури</string>
+  <string name="pref_plugin_presenter">Керування презентацією</string>
+  <string name="pref_plugin_presenter_desc">Скористайтеся вашим пристроєм для того, щоб змінювати слайди у презентації</string>
   <string name="pref_plugin_remotekeyboard">Отримувати віддалені натискання клавіш</string>
   <string name="pref_plugin_remotekeyboard_desc">Отримувати події натискання клавіш з віддаленого пристрою</string>
   <string name="pref_plugin_mpris">Керування відтворенням</string>
   <string name="pref_plugin_mpris_desc">Надає можливість віддаленого керування вашим мультимедійним програвачем</string>
   <string name="pref_plugin_runcommand">Виконати команду</string>
   <string name="pref_plugin_runcommand_desc">Віддалені команди з вашого телефону або планшета</string>
+  <string name="pref_plugin_contacts">Засіб синхронізації контактів</string>
+  <string name="pref_plugin_contacts_desc">Уможливлює синхронізацію записів контактів на пристрої</string>
   <string name="pref_plugin_ping">Підтримання зв’язку</string>
   <string name="pref_plugin_ping_desc">Надсилання і отримання сигналів підтримання зв’язку</string>
   <string name="pref_plugin_notifications">Синхронізація сповіщень</string>
@@ -30,6 +37,7 @@
   <string name="cancel">Скасувати</string>
   <string name="open_settings">Відкрити вікно параметрів</string>
   <string name="no_permissions">Вам слід надати доступ до сповіщень</string>
+  <string name="no_permission_mprisreceiver">Щоб мати змогу керувати вашими програвачами мультимедійних даних, вам слід надати доступ до сповіщень.</string>
   <string name="send_ping">Надіслати сигнал підтримання зв’язку</string>
   <string name="open_mpris_controls">Керування відтворенням</string>
   <string name="remotekeyboard_editing_only_title">Обробляти віддалені клавіші лише під час редагування</string>
@@ -41,6 +49,7 @@
   <string name="mousepad_double_tap_settings_title">Встановлення дії для торкання двома пальцями</string>
   <string name="mousepad_triple_tap_settings_title">Встановлення дії для торкання трьома пальцями</string>
   <string name="mousepad_sensitivity_settings_title">Встановити чутливість сенсорної панелі</string>
+  <string name="mousepad_acceleration_profile_settings_title">Встановити прискорення вказівника</string>
   <string name="mousepad_scroll_direction_title">Зворотний напрямок гортання</string>
   <string-array name="mousepad_tap_entries">
     <item>Клацання правою</item>
@@ -53,6 +62,14 @@
     <item>Типовий</item>
     <item>Швидший за типовий</item>
     <item>Найшвидший</item>
+  </string-array>
+  <string-array name="mousepad_acceleration_profile_entries">
+    <item>Немає прискорення</item>
+    <item>Найслабше</item>
+    <item>Слабке</item>
+    <item>Середнє</item>
+    <item>Сильне</item>
+    <item>Найсильніше</item>
   </string-array>
   <string name="category_connected_devices">З’єднані пристрої</string>
   <string name="category_not_paired_devices">Доступні пристрої</string>
@@ -108,7 +125,7 @@
   <string name="device">Пристрій</string>
   <string name="pair_device">Пов’язати пристрій</string>
   <string name="remote_control">Дистанційне керування</string>
-  <string name="settings">Параметри з’єднання з KDE</string>
+  <string name="settings">Параметри</string>
   <string name="mpris_play">Пуск</string>
   <string name="mpris_pause">Пауза</string>
   <string name="mpris_previous">Назад</string>
@@ -118,7 +135,7 @@
   <string name="mpris_volume">Гучність</string>
   <string name="mpris_settings">Мультимедійні параметри</string>
   <string name="mpris_time_settings_title">Кнопки «Вперед/Назад»</string>
-  <string name="mpris_time_settings_summary">Скоригувати час швидкого гортання вперед або назад при натисканні.</string>
+  <string name="mpris_time_settings_summary">Скоригувати час швидкого гортання вперед або назад при натисканні</string>
   <string-array name="mpris_time_entries">
     <item>10 секунд</item>
     <item>20 секунд</item>
@@ -127,8 +144,8 @@
     <item>2 хвилини</item>
   </string-array>
   <string name="mpris_notification_settings_title">Показувати сповіщення щодо керування відтворенням</string>
-  <string name="mpris_notification_settings_summary">Уможливлює керування відтворенням мультимедійних даних без відкриття KDE Connect.</string>
-  <string name="share_to">Спільно використовувати з…</string>
+  <string name="mpris_notification_settings_summary">Уможливлює керування відтворенням мультимедійних даних без відкриття KDE Connect</string>
+  <string name="share_to">Використовувати спільно з…</string>
   <string name="protocol_version_older">На цьому пристрої використовується стара версія протоколу</string>
   <string name="protocol_version_newer">На цьому пристрої використовується новіша версія протоколу</string>
   <string name="general_settings">Загальні параметри</string>
@@ -142,6 +159,7 @@
   <string name="pair_device_action">Пов’язати новий пристрій</string>
   <string name="unpair_device_action">Розірвати прив’язку %s</string>
   <string name="custom_device_list">Додати пристрої за IP</string>
+  <string name="delete_custom_device">Вилучити %s?</string>
   <string name="share_notification_preference">Звукові сповіщення</string>
   <string name="share_notification_preference_summary">Вібрація і відтворення звуку у відповідь на отримання файла</string>
   <string name="share_destination_customize">Налаштування каталогу призначення</string>
@@ -178,6 +196,7 @@
   <string name="plugin_not_supported">Підтримки цього додатка не передбачено на пристрої</string>
   <string name="findmyphone_title">Знайти телефон</string>
   <string name="findmyphone_title_tablet">Знайти планшет</string>
+  <string name="findmyphone_title_tv">Знайти мій телевізор</string>
   <string name="findmyphone_description">Відтворити дзвінок, щоб цей пристрій було простіше знайти</string>
   <string name="findmyphone_found">Знайдено</string>
   <string name="open">Відкрити</string>
@@ -192,17 +211,47 @@
   <string name="telepathy_permission_explanation">Щоб читати і писати SMS з вашого робочого комп’ютера, вам слід надати програмі доступ до SMS</string>
   <string name="telephony_permission_explanation">"Щоб переглядати дзвінки і SMS з робочого комп’ютера, вам слід надати програмі доступ до дзвінків і  SMS"</string>
   <string name="telephony_optional_permission_explanation">Щоб бачити ім’я контакту замість номеру телефону, вам слід надати програмі доступ до записів контактів на телефоні</string>
+  <string name="contacts_permission_explanation">Щоб мати змогу спільно використовувати ваші записи контактів на пристрої і на комп\'ютері, вам слід надати програмі доступ до контактів</string>
   <string name="select_ringtone">Виберіть мелодію дзвінка</string>
   <string name="telephony_pref_blocked_title">Заблоковані номери</string>
   <string name="telephony_pref_blocked_dialog_desc">Не показувати виклики та SMS з цих номерів. Будь ласка, вказуйте кожен із номерів у окремому рядку.</string>
   <string name="mpris_coverart_description">Зображення обкладинки відтворюваних даних</string>
   <string name="device_icon_description">Піктограма пристрою</string>
   <string name="settings_icon_description">Піктограма параметрів</string>
+  <string name="presenter_fullscreen">На увесь екран</string>
+  <string name="presenter_exit">Вийти з презентації</string>
+  <string name="presenter_lock_tip">Ви можете заблокувати ваш пристрій так, щоб користуватися кнопками зміни гучності як кнопками «Назад»/«Далі»</string>
   <string name="add_command">Додати команду</string>
-  <string name="addcommand_name">Назва</string>
-  <string name="addcommand_command">Команда</string>
-  <string name="command_confirm_needed">Вам доведеться підтвердити команду на комп\'ютері</string>
   <string name="addcommand_explanation">Жодних команд не зареєстровано</string>
   <string name="addcommand_explanation2">Ви можете додавати нові команди за допомогою Системних параметрів KDE Connect</string>
+  <string name="add_command_description">Ви можете додавати команди на комп\'ютері</string>
+  <string name="pref_plugin_mprisreceiver">Керування відтворенням</string>
+  <string name="pref_plugin_mprisreceiver_desc">Керування вашими програвачами на телефоні з іншого пристрою</string>
   <string name="dark_theme">Темна тема</string>
+  <string name="notification_channel_default">Інші сповіщення</string>
+  <string name="notification_channel_persistent">Постійний індикатор</string>
+  <string name="notification_channel_media_control">Керування відтворенням</string>
+  <string name="notification_channel_filetransfer">Передавання файлів</string>
+  <string name="mpris_stop">Зупинити відтворення у поточному програвачі</string>
+  <string name="copy_url_to_clipboard">Скопіювати адресу до буфера</string>
+  <string name="clipboard_toast">Скопійовано до буфера</string>
+  <string name="runcommand_notreachable">Немає доступу до пристрою</string>
+  <string name="runcommand_notpaired">Пристрій не пов’язано</string>
+  <string name="runcommand_nosuchdevice">Такого пристрою не існує</string>
+  <string name="runcommand_noruncommandplugin">Для цього пристрою не увімкнено додаток виконання команд</string>
+  <string name="pref_plugin_findremotedevice">Знайти віддалений пристрій</string>
+  <string name="pref_plugin_findremotedevice_desc">Дзвінок на вашому віддаленому пристрої</string>
+  <string name="ring">Дзвінок</string>
+  <string name="pref_plugin_systemvolume">Системний том</string>
+  <string name="pref_plugin_systemvolume_desc">Керування системним томом на віддаленому пристрої</string>
+  <string name="mute">Вимкнути звук</string>
+  <string name="all">Усі</string>
+  <string name="devices">Пристрої</string>
+  <string name="settings_rename">Назва пристрою</string>
+  <string name="settings_dark_mode">Темна тема</string>
+  <string name="settings_more_settings_title">Додаткові параметри</string>
+  <string name="settings_more_settings_text">Окремі параметри пристроїв наведено на сторінці «Параметри додатків» сторінки пристрою.</string>
+  <string name="setting_persistent_notification">Показувати постійне сповіщення</string>
+  <string name="setting_persistent_notification_oreo_description">Є обов\'язковим для Android з версії Android 8.0</string>
+  <string name="setting_persistent_notification_pie_description">Починаючи з версії 9.0, це сповіщення можна мінімізувати лише довгим його натисканням</string>
 </resources>

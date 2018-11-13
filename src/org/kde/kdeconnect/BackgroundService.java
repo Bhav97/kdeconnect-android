@@ -20,22 +20,31 @@
 
 package org.kde.kdeconnect;
 
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.net.ConnectivityManager;
 import android.os.Binder;
 import android.os.Build;
 import android.os.IBinder;
+import android.support.v4.app.NotificationCompat;
+import android.text.TextUtils;
 import android.util.Log;
 
 import org.kde.kdeconnect.Backends.BaseLink;
 import org.kde.kdeconnect.Backends.BaseLinkProvider;
-//import org.kde.kdeconnect.Backends.BluetoothBackend.BluetoothLinkProvider;
 import org.kde.kdeconnect.Backends.LanBackend.LanLinkProvider;
+import org.kde.kdeconnect.Helpers.NotificationHelper;
 import org.kde.kdeconnect.Helpers.SecurityHelpers.RsaHelper;
 import org.kde.kdeconnect.Helpers.SecurityHelpers.SslHelper;
+import org.kde.kdeconnect.Plugins.Plugin;
+import org.kde.kdeconnect.UserInterface.MainActivity;
+import org.kde.kdeconnect_tp.R;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -44,12 +53,19 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+//import org.kde.kdeconnect.Backends.BluetoothBackend.BluetoothLinkProvider;
+
 public class BackgroundService extends Service {
+    private static final int FOREGROUND_NOTIFICATION_ID = 1;
 
     private static BackgroundService instance;
 
     public interface DeviceListChangedCallback {
         void onDeviceListChanged();
+    }
+
+    public interface PluginCallback<T extends Plugin>  {
+        void run(T plugin);
     }
 
     private final ConcurrentHashMap<String, DeviceListChangedCallback> deviceListChangedCallbacks = new ConcurrentHashMap<>();
@@ -64,7 +80,7 @@ public class BackgroundService extends Service {
         return instance;
     }
 
-    public boolean acquireDiscoveryMode(Object key) {
+    private boolean acquireDiscoveryMode(Object key) {
         boolean wasEmpty = discoveryModeAcquisitions.isEmpty();
         discoveryModeAcquisitions.add(key);
         if (wasEmpty) {
@@ -74,7 +90,7 @@ public class BackgroundService extends Service {
         return wasEmpty;
     }
 
-    public void releaseDiscoveryMode(Object key) {
+    private void releaseDiscoveryMode(Object key) {
         boolean removed = discoveryModeAcquisitions.remove(key);
         //Log.e("releaseDiscoveryMode",key.getClass().getName() +" ["+discoveryModeAcquisitions.size()+"]");
         if (removed && discoveryModeAcquisitions.isEmpty()) {
@@ -87,24 +103,18 @@ public class BackgroundService extends Service {
     }
 
     public static void addGuiInUseCounter(final Context activity, final boolean forceNetworkRefresh) {
-        BackgroundService.RunCommand(activity, new BackgroundService.InstanceCallback() {
-            @Override
-            public void onServiceStart(BackgroundService service) {
-                boolean refreshed = service.acquireDiscoveryMode(activity);
-                if (!refreshed && forceNetworkRefresh) {
-                    service.onNetworkChange();
-                }
+        BackgroundService.RunCommand(activity, service -> {
+            boolean refreshed = service.acquireDiscoveryMode(activity);
+            if (!refreshed && forceNetworkRefresh) {
+                service.onNetworkChange();
             }
         });
     }
 
     public static void removeGuiInUseCounter(final Context activity) {
-        BackgroundService.RunCommand(activity, new BackgroundService.InstanceCallback() {
-            @Override
-            public void onServiceStart(BackgroundService service) {
-                //If no user interface is open, close the connections open to other devices
-                service.releaseDiscoveryMode(activity);
-            }
+        BackgroundService.RunCommand(activity, service -> {
+            //If no user interface is open, close the connections open to other devices
+            service.releaseDiscoveryMode(activity);
         });
     }
 
@@ -134,6 +144,13 @@ public class BackgroundService extends Service {
         for (DeviceListChangedCallback callback : deviceListChangedCallbacks.values()) {
             callback.onDeviceListChanged();
         }
+
+
+        if (NotificationHelper.isPersistentNotificationEnabled(this)) {
+            //Update the foreground notification with the currently connected device list
+            NotificationManager nm = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+            nm.notify(FOREGROUND_NOTIFICATION_ID, createForegroundNotification());
+        }
     }
 
     private void loadRememberedDevicesFromSettings() {
@@ -153,9 +170,7 @@ public class BackgroundService extends Service {
     private void registerLinkProviders() {
         linkProviders.add(new LanLinkProvider(this));
 //        linkProviders.add(new LoopbackLinkProvider(this));
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
-//            linkProviders.add(new BluetoothLinkProvider(this));
-        }
+//        linkProviders.add(new BluetoothLinkProvider(this));
     }
 
     public ArrayList<BaseLinkProvider> getLinkProviders() {
@@ -167,13 +182,10 @@ public class BackgroundService extends Service {
     }
 
     private void cleanDevices() {
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                for (Device d : devices.values()) {
-                    if (!d.isPaired() && !d.isPairRequested() && !d.isPairRequestedByPeer() && !d.deviceShouldBeKeptAlive()) {
-                        d.disconnect();
-                    }
+        new Thread(() -> {
+            for (Device d : devices.values()) {
+                if (!d.isPaired() && !d.isPairRequested() && !d.isPairRequestedByPeer() && !d.deviceShouldBeKeptAlive()) {
+                    d.disconnect();
                 }
             }
         }).start();
@@ -263,11 +275,16 @@ public class BackgroundService extends Service {
 
         // Register screen on listener
         IntentFilter filter = new IntentFilter(Intent.ACTION_SCREEN_ON);
+        // See: https://developer.android.com/reference/android/net/ConnectivityManager.html#CONNECTIVITY_ACTION
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            filter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
+        }
         registerReceiver(new KdeConnectBroadcastReceiver(), filter);
 
         Log.i("KDE/BackgroundService", "Service not started yet, initializing...");
 
         initializeSecurityParameters();
+        NotificationHelper.initializeChannels(this);
         loadRememberedDevicesFromSettings();
         registerLinkProviders();
 
@@ -279,13 +296,62 @@ public class BackgroundService extends Service {
         }
     }
 
-    void initializeSecurityParameters() {
+
+    public void changePersistentNotificationVisibility(boolean visible) {
+        NotificationManager nm = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        if (visible) {
+            nm.notify(FOREGROUND_NOTIFICATION_ID, createForegroundNotification());
+        } else {
+            stopForeground(true);
+            Start(this);
+        }
+    }
+
+    private Notification createForegroundNotification() {
+
+        //Why is this needed: https://developer.android.com/guide/components/services#Foreground
+
+        Intent intent = new Intent(this, MainActivity.class);
+        PendingIntent pi = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+        NotificationCompat.Builder notification = new NotificationCompat.Builder(this, NotificationHelper.Channels.PERSISTENT);
+        notification
+                .setSmallIcon(R.drawable.ic_notification)
+                .setOngoing(true)
+                .setContentIntent(pi)
+                .setPriority(NotificationCompat.PRIORITY_MIN) //MIN so it's not shown in the status bar before Oreo, on Oreo it will be bumped to LOW
+                .setShowWhen(false)
+                .setAutoCancel(false);
+        notification.setGroup("BackgroundService");
+
+        ArrayList<String> connectedDevices = new ArrayList<>();
+        for (Device device : getDevices().values()) {
+            if (device.isReachable() && device.isPaired()) {
+                connectedDevices.add(device.getName());
+            }
+        }
+
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+            //Pre-oreo, the notification will have an empty title line without this
+            notification.setContentTitle(getString(R.string.kde_connect));
+        }
+
+        if (connectedDevices.isEmpty()) {
+            notification.setContentText(getString(R.string.foreground_notification_no_devices));
+        } else {
+            notification.setContentText(getString(R.string.foreground_notification_devices, TextUtils.join(", ", connectedDevices)));
+        }
+
+        return notification.build();
+    }
+
+    private void initializeSecurityParameters() {
         RsaHelper.initialiseRsaKeys(this);
         SslHelper.initialiseCertificate(this);
     }
 
     @Override
     public void onDestroy() {
+        stopForeground(true);
         for (BaseLinkProvider a : linkProviders) {
             a.onStop();
         }
@@ -320,29 +386,53 @@ public class BackgroundService extends Service {
         } finally {
             mutex.unlock();
         }
+
+        if (NotificationHelper.isPersistentNotificationEnabled(this)) {
+            startForeground(FOREGROUND_NOTIFICATION_ID, createForegroundNotification());
+        }
         return Service.START_STICKY;
     }
 
-    public static void Start(Context c) {
+    private static void Start(Context c) {
         RunCommand(c, null);
     }
 
     public static void RunCommand(final Context c, final InstanceCallback callback) {
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                if (callback != null) {
-                    mutex.lock();
-                    try {
-                        callbacks.add(callback);
-                    } finally {
-                        mutex.unlock();
-                    }
+        new Thread(() -> {
+            if (callback != null) {
+                mutex.lock();
+                try {
+                    callbacks.add(callback);
+                } finally {
+                    mutex.unlock();
                 }
-                Intent serviceIntent = new Intent(c, BackgroundService.class);
+            }
+            Intent serviceIntent = new Intent(c, BackgroundService.class);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                c.startForegroundService(serviceIntent);
+            } else {
                 c.startService(serviceIntent);
             }
         }).start();
+    }
+
+    public static <T extends Plugin> void runWithPlugin(final Context c, final String deviceId, final Class<T> pluginClass, final PluginCallback<T> cb) {
+        RunCommand(c, service -> {
+            Device device = service.getDevice(deviceId);
+
+            if (device == null) {
+                Log.e("BackgroundService", "Device " + deviceId + " not found");
+                return;
+            }
+
+            final T plugin = device.getPlugin(pluginClass);
+
+            if (plugin == null) {
+                Log.e("BackgroundService", "Device " + device.getName() + " does not have plugin " + pluginClass.getName());
+                return;
+            }
+            cb.run(plugin);
+        });
     }
 
 }

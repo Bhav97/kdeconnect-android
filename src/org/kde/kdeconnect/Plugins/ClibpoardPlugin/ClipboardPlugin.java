@@ -20,15 +20,13 @@
 
 package org.kde.kdeconnect.Plugins.ClibpoardPlugin;
 
-import android.os.Build;
-
 import org.kde.kdeconnect.NetworkPacket;
 import org.kde.kdeconnect.Plugins.Plugin;
 import org.kde.kdeconnect_tp.R;
 
 public class ClipboardPlugin extends Plugin {
 
-    public final static String PACKET_TYPE_CLIPBOARD = "kdeconnect.clipboard";
+    private final static String PACKET_TYPE_CLIPBOARD = "kdeconnect.clipboard";
 
     @Override
     public String getDisplayName() {
@@ -41,25 +39,16 @@ public class ClipboardPlugin extends Plugin {
     }
 
     @Override
-    public boolean isEnabledByDefault() {
-        //Disabled by default due to just one direction sync(incoming clipboard change) in early version of android.
-        return (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB);
-    }
-
-    @Override
     public boolean onPacketReceived(NetworkPacket np) {
         String content = np.getString("content");
         ClipboardListener.instance(context).setText(content);
         return true;
     }
 
-    private ClipboardListener.ClipboardObserver observer = new ClipboardListener.ClipboardObserver() {
-        @Override
-        public void clipboardChanged(String content) {
-            NetworkPacket np = new NetworkPacket(ClipboardPlugin.PACKET_TYPE_CLIPBOARD);
-            np.set("content", content);
-            device.sendPacket(np);
-        }
+    private final ClipboardListener.ClipboardObserver observer = content -> {
+        NetworkPacket np = new NetworkPacket(ClipboardPlugin.PACKET_TYPE_CLIPBOARD);
+        np.set("content", content);
+        device.sendPacket(np);
     };
 
     @Override

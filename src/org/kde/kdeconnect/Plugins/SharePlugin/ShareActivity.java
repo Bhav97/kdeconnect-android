@@ -15,8 +15,8 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>. 
-*/
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 
 package org.kde.kdeconnect.Plugins.SharePlugin;
 
@@ -25,12 +25,9 @@ import android.os.Bundle;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.view.View;
-import android.widget.AdapterView;
 import android.widget.ListView;
 
 import org.kde.kdeconnect.BackgroundService;
@@ -70,28 +67,15 @@ public class ShareActivity extends AppCompatActivity {
 
     private void updateComputerListAction() {
         updateComputerList();
-        BackgroundService.RunCommand(ShareActivity.this, new BackgroundService.InstanceCallback() {
-            @Override
-            public void onServiceStart(BackgroundService service) {
-                service.onNetworkChange();
-            }
-        });
+        BackgroundService.RunCommand(ShareActivity.this, BackgroundService::onNetworkChange);
 
         mSwipeRefreshLayout.setRefreshing(true);
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    Thread.sleep(1500);
-                } catch (InterruptedException ignored) {
-                }
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        mSwipeRefreshLayout.setRefreshing(false);
-                    }
-                });
+        new Thread(() -> {
+            try {
+                Thread.sleep(1500);
+            } catch (InterruptedException ignored) {
             }
+            runOnUiThread(() -> mSwipeRefreshLayout.setRefreshing(false));
         }).start();
     }
 
@@ -105,41 +89,34 @@ public class ShareActivity extends AppCompatActivity {
             return;
         }
 
-        BackgroundService.RunCommand(this, new BackgroundService.InstanceCallback() {
-            @Override
-            public void onServiceStart(final BackgroundService service) {
+        BackgroundService.RunCommand(this, service -> {
 
-                Collection<Device> devices = service.getDevices().values();
-                final ArrayList<Device> devicesList = new ArrayList<>();
-                final ArrayList<ListAdapter.Item> items = new ArrayList<>();
+            Collection<Device> devices = service.getDevices().values();
+            final ArrayList<Device> devicesList = new ArrayList<>();
+            final ArrayList<ListAdapter.Item> items = new ArrayList<>();
 
-                items.add(new SectionItem(getString(R.string.share_to)));
+            SectionItem section = new SectionItem(getString(R.string.share_to));
+            items.add(section);
 
-                for (Device d : devices) {
-                    if (d.isReachable() && d.isPaired()) {
-                        devicesList.add(d);
-                        items.add(new EntryItem(d.getName()));
-                    }
+            for (Device d : devices) {
+                if (d.isReachable() && d.isPaired()) {
+                    devicesList.add(d);
+                    items.add(new EntryItem(d.getName()));
+                    section.isEmpty = false;
                 }
-
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        ListView list = (ListView) findViewById(R.id.devices_list);
-                        list.setAdapter(new ListAdapter(ShareActivity.this, items));
-                        list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-                            @Override
-                            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-
-                                Device device = devicesList.get(i - 1); //NOTE: -1 because of the title!
-                                SharePlugin.share(intent, device);
-                                finish();
-                            }
-                        });
-                    }
-                });
-
             }
+
+            runOnUiThread(() -> {
+                ListView list = findViewById(R.id.devices_list);
+                list.setAdapter(new ListAdapter(ShareActivity.this, items));
+                list.setOnItemClickListener((adapterView, view, i, l) -> {
+
+                    Device device = devicesList.get(i - 1); //NOTE: -1 because of the title!
+                    BackgroundService.runWithPlugin(this, device.getDeviceId(), SharePlugin.class, plugin -> plugin.share(intent));
+                    finish();
+                });
+            });
+
         });
     }
 
@@ -150,16 +127,10 @@ public class ShareActivity extends AppCompatActivity {
         ThemeUtil.setUserPreferredTheme(this);
         setContentView(R.layout.devices_list);
 
-
         ActionBar actionBar = getSupportActionBar();
-        mSwipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.refresh_list_layout);
+        mSwipeRefreshLayout = findViewById(R.id.refresh_list_layout);
         mSwipeRefreshLayout.setOnRefreshListener(
-                new SwipeRefreshLayout.OnRefreshListener() {
-                    @Override
-                    public void onRefresh() {
-                        updateComputerListAction();
-                    }
-                }
+                this::updateComputerListAction
         );
         if (actionBar != null) {
             actionBar.setDisplayOptions(ActionBar.DISPLAY_SHOW_HOME | ActionBar.DISPLAY_SHOW_TITLE | ActionBar.DISPLAY_SHOW_CUSTOM);
@@ -176,32 +147,16 @@ public class ShareActivity extends AppCompatActivity {
 
         if (deviceId != null) {
 
-            BackgroundService.RunCommand(this, new BackgroundService.InstanceCallback() {
-
-                @Override
-                public void onServiceStart(BackgroundService service) {
-                    Log.d("DirectShare", "sharing to " + service.getDevice(deviceId).getName());
-                    Device device = service.getDevice(deviceId);
-                    if (device.isReachable() && device.isPaired()) {
-                        SharePlugin.share(intent, device);
-                    }
-                    finish();
-                }
+            BackgroundService.runWithPlugin(this, deviceId, SharePlugin.class, plugin -> {
+                plugin.share(intent);
+                finish();
             });
         } else {
 
             BackgroundService.addGuiInUseCounter(this);
-            BackgroundService.RunCommand(this, new BackgroundService.InstanceCallback() {
-                @Override
-                public void onServiceStart(BackgroundService service) {
-                    service.onNetworkChange();
-                    service.addDeviceListChangedCallback("ShareActivity", new BackgroundService.DeviceListChangedCallback() {
-                        @Override
-                        public void onDeviceListChanged() {
-                            updateComputerList();
-                        }
-                    });
-                }
+            BackgroundService.RunCommand(this, service -> {
+                service.onNetworkChange();
+                service.addDeviceListChangedCallback("ShareActivity", this::updateComputerList);
             });
             updateComputerList();
         }
@@ -210,12 +165,7 @@ public class ShareActivity extends AppCompatActivity {
 
     @Override
     protected void onStop() {
-        BackgroundService.RunCommand(this, new BackgroundService.InstanceCallback() {
-            @Override
-            public void onServiceStart(BackgroundService service) {
-                service.removeDeviceListChangedCallback("ShareActivity");
-            }
-        });
+        BackgroundService.RunCommand(this, service -> service.removeDeviceListChangedCallback("ShareActivity"));
         BackgroundService.removeGuiInUseCounter(this);
         super.onStop();
     }

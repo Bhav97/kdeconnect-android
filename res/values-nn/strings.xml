@@ -1,7 +1,10 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
+  <string name="kde_connect">KDE Connect</string>
+  <string name="foreground_notification_no_devices">Ikkje tilkopla ei eining</string>
+  <string name="foreground_notification_devices">Kopla til: %s</string>
   <string name="pref_plugin_telephony">Telefonvarsling</string>
-  <string name="pref_plugin_telephony_desc">Send varsling ved SMS og oppringing</string>
+  <string name="pref_plugin_telephony_desc">Send varsling ved oppringing</string>
   <string name="pref_plugin_battery">Batterirapport</string>
   <string name="pref_plugin_battery_desc">Meld regelmessig frå om batteristatusen</string>
   <string name="pref_plugin_sftp">Vis filsystem</string>
@@ -10,12 +13,16 @@
   <string name="pref_plugin_clipboard_desc">Del innhaldet på utklippstavla</string>
   <string name="pref_plugin_mousepad">Fjernstyring</string>
   <string name="pref_plugin_mousepad_desc">Bruk telefonen eller nettbrettet som styreplate og tastatur</string>
+  <string name="pref_plugin_presenter">Fjernkontroll av presentasjon</string>
+  <string name="pref_plugin_presenter_desc">Bruk eininga til å byta lysbilete i presentasjonar</string>
   <string name="pref_plugin_remotekeyboard">Ta imot eksterne tastetrykk</string>
   <string name="pref_plugin_remotekeyboard_desc">Ta imot tastetrykk frå eksterne einingar</string>
   <string name="pref_plugin_mpris">Mediekontrollar</string>
   <string name="pref_plugin_mpris_desc">Gje fjernkontroll til mediespelarar</string>
   <string name="pref_plugin_runcommand">Køyr kommando</string>
   <string name="pref_plugin_runcommand_desc">Utløys fjernkommandoar frå telefonen eller nettbrettet</string>
+  <string name="pref_plugin_contacts">Kontaktsynkronisering</string>
+  <string name="pref_plugin_contacts_desc">Tillat synkronisering av adresseboka på eininga</string>
   <string name="pref_plugin_ping">Ping</string>
   <string name="pref_plugin_ping_desc">Send og ta imot pingsignal</string>
   <string name="pref_plugin_notifications">Varslingssynkronisering</string>
@@ -30,6 +37,7 @@
   <string name="cancel">Avbryt</string>
   <string name="open_settings">Opna innstillingar</string>
   <string name="no_permissions">Du må gje tilgang til lesing av varslingar</string>
+  <string name="no_permission_mprisreceiver">Du må gje tilgang til varslingar for å kunne kontrollera mediespelarar</string>
   <string name="send_ping">Send pingsignal</string>
   <string name="open_mpris_controls">Mediekontroll</string>
   <string name="remotekeyboard_editing_only_title">Handter eksterne tastetrykk berre ved redigering</string>
@@ -41,6 +49,7 @@
   <string name="mousepad_double_tap_settings_title">Vel handling for tofingertrykk</string>
   <string name="mousepad_triple_tap_settings_title">Vel handling for trefingertrykk</string>
   <string name="mousepad_sensitivity_settings_title">Vel følsemd for styreplate</string>
+  <string name="mousepad_acceleration_profile_settings_title">Vel peikarakselerasjon</string>
   <string name="mousepad_scroll_direction_title">Omvend rulleretning</string>
   <string-array name="mousepad_tap_entries">
     <item>Høgreklikk</item>
@@ -53,6 +62,14 @@
     <item>Standard</item>
     <item>Raskare enn standard</item>
     <item>Raskast</item>
+  </string-array>
+  <string-array name="mousepad_acceleration_profile_entries">
+    <item>Ingen akselerasjon</item>
+    <item>Svakast</item>
+    <item>Svakare</item>
+    <item>Middels</item>
+    <item>Sterkare</item>
+    <item>Sterkast</item>
   </string-array>
   <string name="category_connected_devices">Tilkopla einingar</string>
   <string name="category_not_paired_devices">Tilgjengelege einingar</string>
@@ -83,6 +100,10 @@
   <string name="incoming_file_text">%1s</string>
   <string name="outgoing_file_title">Sender fil til %1s</string>
   <string name="outgoing_files_title">Sender filer til %1s</string>
+  <plurals name="outgoing_files_text">
+    <item quantity="one">Sende %1$d fil</item>
+    <item quantity="other">Sende %1$d av %2$d filer</item>
+  </plurals>
   <string name="received_file_title">Fekk fil frå %1s</string>
   <string name="received_file_fail_title">Klarte ikkje ta imot fil frå %1s</string>
   <string name="received_file_text">Trykk for å opna «%1s»</string>
@@ -102,8 +123,9 @@
   <string name="device">Eining</string>
   <string name="pair_device">Par ny eining</string>
   <string name="remote_control">Fjernstyring</string>
-  <string name="settings">Innstillingar for KDE Connect</string>
+  <string name="settings">Innstillingar</string>
   <string name="mpris_play">Spel</string>
+  <string name="mpris_pause">Pause</string>
   <string name="mpris_previous">Førre</string>
   <string name="mpris_rew">Spol tilbake</string>
   <string name="mpris_ff">Spol fram</string>
@@ -119,6 +141,8 @@
     <item>1 minutt</item>
     <item>2 minutt</item>
   </string-array>
+  <string name="mpris_notification_settings_title">Vis varsling med avspelingskontrollar</string>
+  <string name="mpris_notification_settings_summary">Tillat å kontrollera mediespelarar utan å opna KDE Connect</string>
   <string name="share_to">Del til …</string>
   <string name="protocol_version_older">Denne eininga brukar ein gammal protokollversjon</string>
   <string name="protocol_version_newer">Denne eininga brukar ein nyare protokollversjon</string>
@@ -133,12 +157,15 @@
   <string name="pair_device_action">Par ny eining</string>
   <string name="unpair_device_action">Løys paring for %s</string>
   <string name="custom_device_list">Legg til eining basert på IP</string>
+  <string name="delete_custom_device">Vil du sletta %s?</string>
   <string name="share_notification_preference">Lydvarsling</string>
   <string name="share_notification_preference_summary">Vibrer og spel ein lyd ved mottak av fil</string>
   <string name="share_destination_customize">Sjølvvald målmappe</string>
   <string name="share_destination_customize_summary_disabled">Mottekne filer vert lagra i nedlastingsmappa</string>
   <string name="share_destination_customize_summary_enabled">Mottekne filer vert lagra i mappa nedanfor</string>
   <string name="share_destination_folder_preference">Målmappe</string>
+  <string name="share">Del</string>
+  <string name="share_received_file">Del «%s»</string>
   <string name="title_activity_notification_filter">Varslingsfilter</string>
   <string name="filter_apps_info">Varslingar vert synkroniserte for dei valde appane.</string>
   <string name="sftp_internal_storage">Intern lagring</string>
@@ -150,11 +177,11 @@
   <string name="add_host">Legg til vert/IP</string>
   <string name="add_host_hint">Vertsnamn/IP-adresse</string>
   <string name="no_players_connected">Fann ingen spelarar</string>
-  <string name="custom_dev_list_help">Bruk berre dette valet viss eininga ikkje vert kjend att automatisk. Skriv inn IP-adressa eller vertsnamnet nedanfor, og trykk på knappen for å leggja eininga til oversikta. Trykk på element i oversikta for å fjerna dei.</string>
+  <string name="custom_dev_list_help">Bruk berre dette valet viss eininga ikkje vert kjend att automatisk. Skriv inn IP-adressa eller vertsnamnet nedanfor, og trykk på knappen for å leggja til eininga. Trykk på oppføringar i lista for å fjerna dei.</string>
   <string name="mpris_player_on_device">%1$s på %2$s</string>
   <string name="send_files">Send filer</string>
   <string name="pairing_title">KDE Connect-einingar</string>
-  <string name="pairing_description">Andre einingar i nettverket som køyrer KDE Connect vil dukka opp her.</string>
+  <string name="pairing_description">Andre einingar i nettverket som køyrer KDE Connect, vil dukka opp her.</string>
   <string name="device_paired">Eininga er para</string>
   <string name="device_rename_title">Endra namn på eining</string>
   <string name="device_rename_confirm">Endra namn</string>
@@ -167,8 +194,9 @@
   <string name="plugin_not_supported">Dette tillegget er ikkje støtta av eininga</string>
   <string name="findmyphone_title">Finn telefonen min</string>
   <string name="findmyphone_title_tablet">Finn nettbrettet mitt</string>
+  <string name="findmyphone_title_tv">Finn TV-en min</string>
   <string name="findmyphone_description">Spel av lydsignal på eininga, slik at du lett kan finna ho</string>
-  <string name="findmyphone_found">Fann</string>
+  <string name="findmyphone_found">Funnen</string>
   <string name="open">Opna</string>
   <string name="close">Lukk</string>
   <string name="no_permissions_storage">Du må gje KDE Connect løyve til å få tilgang til lagringsområdet</string>
@@ -181,4 +209,47 @@
   <string name="telepathy_permission_explanation">For å kunna lesa og skriva tekstmeldingar frå datamaskina må du gje appen tilgang til SMS</string>
   <string name="telephony_permission_explanation">For å kunna sjå telefonsamtalar og tekstmeldingar frå datamaskina må du gje appen tilgang til telefon- og SMS-funksjonar</string>
   <string name="telephony_optional_permission_explanation">For å kunna sjå namn på kontaktar i staden for berre telefonnummeret må du gje appen tilgang til kontaktlista di</string>
+  <string name="contacts_permission_explanation">For å kunna dela adresseboka di med datamaskina må du gje appen lese- og skriveløyve til adresseboka</string>
+  <string name="select_ringtone">Vel ringjetone</string>
+  <string name="telephony_pref_blocked_title">Blokkerte nummer</string>
+  <string name="telephony_pref_blocked_dialog_desc">Ikkje vis oppringingar og SMS-ar frå desse telefonnummera. Skriv inn eitt telefonnummer per linje.</string>
+  <string name="mpris_coverart_description">Omslagsbilete til gjeldande mediefil</string>
+  <string name="device_icon_description">Einingsikon</string>
+  <string name="settings_icon_description">Innstillingsikon</string>
+  <string name="presenter_fullscreen">Fullskjerm</string>
+  <string name="presenter_exit">Avslutt presentasjon</string>
+  <string name="presenter_lock_tip">Du kan låsa eininga for å bruka lydstyrke-knappane som førre/neste-knappar</string>
+  <string name="add_command">Legg til kommando</string>
+  <string name="addcommand_explanation">Ingen kommandoar er registrerte</string>
+  <string name="addcommand_explanation2">Du kan leggja til nye kommandoar i systeminnstillingane til KDE Connect</string>
+  <string name="add_command_description">Du kan leggja til kommandoar på skrivebordet</string>
+  <string name="pref_plugin_mprisreceiver">Mediespelarkontrollar</string>
+  <string name="pref_plugin_mprisreceiver_desc">Kontroller mediespelarar på telefonen din frå ei anna eining</string>
+  <string name="dark_theme">Mørkt tema</string>
+  <string name="notification_channel_default">Andre varslingar</string>
+  <string name="notification_channel_persistent">Evigvarande varslingar</string>
+  <string name="notification_channel_media_control">Mediestyring</string>
+  <string name="notification_channel_filetransfer">Filoverføring</string>
+  <string name="mpris_stop">Stopp gjeldande avspelar</string>
+  <string name="copy_url_to_clipboard">Kopier adresse til utklippstavla</string>
+  <string name="clipboard_toast">Kopiert til utklippstavla</string>
+  <string name="runcommand_notreachable">Får ikkje kontakt med eininga</string>
+  <string name="runcommand_notpaired">Eininga er ikkje para</string>
+  <string name="runcommand_nosuchdevice">Eininga finst ikkje</string>
+  <string name="runcommand_noruncommandplugin">Eininga har ikkje «Køyr kommando»-tillegget slått på</string>
+  <string name="pref_plugin_findremotedevice">Find ekstern eining</string>
+  <string name="pref_plugin_findremotedevice_desc">Ring til ekstern eining</string>
+  <string name="ring">Ring</string>
+  <string name="pref_plugin_systemvolume">Systemlydstyrke</string>
+  <string name="pref_plugin_systemvolume_desc">Juster systemlydstyrken til ekstern eining</string>
+  <string name="mute">Demp lyd</string>
+  <string name="all">Alle</string>
+  <string name="devices">Einingar</string>
+  <string name="settings_rename">Einingsnamn</string>
+  <string name="settings_dark_mode">Mørkt tema</string>
+  <string name="settings_more_settings_title">Fleire innstillingar</string>
+  <string name="settings_more_settings_text">Innstillingar for einskildeiningar finn du under «Programtillegg-oppsett» på kvar eining.</string>
+  <string name="setting_persistent_notification">Vis evigvarande varsling</string>
+  <string name="setting_persistent_notification_oreo_description">Påkravd av Android frå og med versjon 8.0</string>
+  <string name="setting_persistent_notification_pie_description">Frå og med Android 9.0 kan du berre fjerna denne varslinga ved å trykkja lenge på ho</string>
 </resources>

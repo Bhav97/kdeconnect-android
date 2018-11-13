@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
   <string name="pref_plugin_telephony">Upozornění telefonie</string>
-  <string name="pref_plugin_telephony_desc">Posílat upozornění na SMS a hovory</string>
+  <string name="pref_plugin_telephony_desc">Posílat upozornění na příchozí hovory</string>
   <string name="pref_plugin_battery">Hlášení baterie</string>
   <string name="pref_plugin_battery_desc">Periodicky hlásit stav baterky</string>
   <string name="pref_plugin_sftp">Přístup k souborovému systému</string>
@@ -10,12 +10,16 @@
   <string name="pref_plugin_clipboard_desc">Sdílet obsah schránky</string>
   <string name="pref_plugin_mousepad">Vzdálený vstup</string>
   <string name="pref_plugin_mousepad_desc">Používejte svůj telefon nebo tablet jako touchpad a klávesnici</string>
+  <string name="pref_plugin_presenter">Promítací režim</string>
+  <string name="pref_plugin_presenter_desc">Použijte své zařízení pro přepínání snímků prezentace</string>
   <string name="pref_plugin_remotekeyboard">Přijímat stisky kláves se vzdálených zařízení</string>
   <string name="pref_plugin_remotekeyboard_desc">Přijímat události stisku kláves ze vzdálených zařízení</string>
   <string name="pref_plugin_mpris">Ovládání multimédií</string>
   <string name="pref_plugin_mpris_desc">Poskytuje dálkové ovládání přehrávačů médií</string>
   <string name="pref_plugin_runcommand">Spustit příkaz</string>
   <string name="pref_plugin_runcommand_desc">Spouštějte příkazy vzdáleně z vašeho telefonu</string>
+  <string name="pref_plugin_contacts">Synchronizace kontaktů</string>
+  <string name="pref_plugin_contacts_desc">Povolit synchronizaci kontaktů zařízení</string>
   <string name="pref_plugin_ping">Ping</string>
   <string name="pref_plugin_ping_desc">Posílat a přijímat ping</string>
   <string name="pref_plugin_notifications">Synchronizace upozornění</string>
@@ -30,6 +34,7 @@
   <string name="cancel">Zrušit</string>
   <string name="open_settings">Otevřít nastavení</string>
   <string name="no_permissions">Pro zpřístupnění upozornění potřebujete oprávnění</string>
+  <string name="no_permission_mprisreceiver">Abyste byli schopni ovládat vaše přehrávače médií, musíte udělit přístup k oznámením</string>
   <string name="send_ping">Poslat ping</string>
   <string name="open_mpris_controls">Ovládání multimédií</string>
   <string name="remotekeyboard_editing_only_title">Ovládat vzdálené klávesy při editaci</string>
@@ -41,6 +46,7 @@
   <string name="mousepad_double_tap_settings_title">Nastavit činnost pro ťuknutí dvěma prsty</string>
   <string name="mousepad_triple_tap_settings_title">Nastavit činnost pro ťuknutí třemi prsty</string>
   <string name="mousepad_sensitivity_settings_title">Nastavit citlivost touchpadu</string>
+  <string name="mousepad_acceleration_profile_settings_title">Nastavit akceleraci ukazatele</string>
   <string name="mousepad_scroll_direction_title">Obrácený směr posunu</string>
   <string-array name="mousepad_tap_entries">
     <item>Kliknutí pravým tlačítkem myši</item>
@@ -53,6 +59,14 @@
     <item>Výchozí</item>
     <item>Rychlejší</item>
     <item>Nejrychlejší</item>
+  </string-array>
+  <string-array name="mousepad_acceleration_profile_entries">
+    <item>Bez akcelerace</item>
+    <item>Nejslabší</item>
+    <item>Slabší</item>
+    <item>Střední</item>
+    <item>Silná</item>
+    <item>Nejsilnější</item>
   </string-array>
   <string name="category_connected_devices">Připojená zařízení</string>
   <string name="category_not_paired_devices">Dostupná zařízení</string>
@@ -108,7 +122,6 @@
   <string name="device">Zařízení</string>
   <string name="pair_device">Spárovat zařízení</string>
   <string name="remote_control">Vzdálené ovládání</string>
-  <string name="settings">Nastavení KDE Connect</string>
   <string name="mpris_play">Přehrát</string>
   <string name="mpris_pause">Pozastavit</string>
   <string name="mpris_previous">Předchozí</string>
@@ -118,7 +131,6 @@
   <string name="mpris_volume">Hlasitost</string>
   <string name="mpris_settings">Nastavení multimédií</string>
   <string name="mpris_time_settings_title">Tlačítka vpřed/přetočit</string>
-  <string name="mpris_time_settings_summary">Upravit čas pro rychlý posun/přetočení při stisku.</string>
   <string-array name="mpris_time_entries">
     <item>10 sekund</item>
     <item>20 sekund</item>
@@ -127,8 +139,6 @@
     <item>2 minuty</item>
   </string-array>
   <string name="mpris_notification_settings_title">Obrazit upozornění pro ovládání médií</string>
-  <string name="mpris_notification_settings_summary">Umožní ovládat přehrávače médií bez otevření KDE Connect.</string>
-  <string name="share_to">Sdílet s...</string>
   <string name="protocol_version_older">Toto zařízení používá starou verzi protokolu</string>
   <string name="protocol_version_newer">Toto zařízení používá novější verzi protokolu</string>
   <string name="general_settings">Obecná nastavení</string>
@@ -178,6 +188,7 @@
   <string name="plugin_not_supported">Tento modul zařízení nepodporuje</string>
   <string name="findmyphone_title">Najít můj telefon</string>
   <string name="findmyphone_title_tablet">Najít můj tablet</string>
+  <string name="findmyphone_title_tv">Najít mou TV</string>
   <string name="findmyphone_description">Prozvoní toto zařízení, takže jej můžete najít</string>
   <string name="findmyphone_found">Nalezeno</string>
   <string name="open">Otevřít</string>
@@ -192,16 +203,34 @@
   <string name="telepathy_permission_explanation">Pro čtení a psaní SMS z počítače musíte udělit oprávnění k SMS</string>
   <string name="telephony_permission_explanation">Pro zobrazení telefonátů a SMS v počítači musíte udělit oprávnění k telefonování a SMS</string>
   <string name="telephony_optional_permission_explanation">Pro zobrazení jména kontaktu u telefonního čísla je potřeba udělit oprávnění ke kontaktům v telefonu</string>
+  <string name="contacts_permission_explanation">Pro sdílení knihy kontaktů s pracovním prostředím, musíte udělit přístup ke kontaktům</string>
   <string name="select_ringtone">Vybrat vyzváněcí tón</string>
   <string name="telephony_pref_blocked_title">Blokovaná čísla</string>
   <string name="telephony_pref_blocked_dialog_desc">Nezobrazovat volnání a SMS z těchto čísel. Prosím, zadejte pouze jedno slovo na řádek.</string>
   <string name="mpris_coverart_description">Obal současného média</string>
   <string name="device_icon_description">Ikona zařízení</string>
   <string name="settings_icon_description">Ikona nastavení</string>
+  <string name="presenter_fullscreen">Celá obrazovka</string>
+  <string name="presenter_exit">Ukončit prezentaci</string>
+  <string name="presenter_lock_tip">Zařízení můžete uzamknout a používat klávesy hlasitosti jako tlačítka předchozí/další</string>
   <string name="add_command">Přidat příkaz</string>
-  <string name="addcommand_name">Název</string>
-  <string name="addcommand_command">Příkaz</string>
-  <string name="command_confirm_needed">Budete muset potvrdit příkaz v pracovním prostředí</string>
   <string name="addcommand_explanation">Nejsou registrovány žádné příkazy</string>
   <string name="addcommand_explanation2">Nové příkazy můžete přidat v nastavení systému KDE Connect</string>
+  <string name="add_command_description">V pracovním prostředí můžete přidat příkazy</string>
+  <string name="pref_plugin_mprisreceiver">Ovládání přehrávače médií</string>
+  <string name="pref_plugin_mprisreceiver_desc">Ovládejte přehrávače médií na vašem telefonu z jiného zařízení</string>
+  <string name="dark_theme">Tmavý motiv</string>
+  <string name="mpris_stop">Zastavit současný přehrávač</string>
+  <string name="copy_url_to_clipboard">Kopírovat URL do schránky</string>
+  <string name="clipboard_toast">Zkopírováno do schránky</string>
+  <string name="runcommand_notreachable">Zařízení je nedostupné</string>
+  <string name="runcommand_notpaired">Zařízení není spárováno</string>
+  <string name="runcommand_nosuchdevice">Není zde žádné takové zařízení</string>
+  <string name="runcommand_noruncommandplugin">Toto zařízení nemá povolený modul pro spouštění příkazů</string>
+  <string name="pref_plugin_findremotedevice">Najít vzdálené zařízení</string>
+  <string name="pref_plugin_findremotedevice_desc">Prozvonit vzdálené zařízení</string>
+  <string name="ring">Prozvonit</string>
+  <string name="pref_plugin_systemvolume">Hlasitost systému</string>
+  <string name="pref_plugin_systemvolume_desc">Ovládejte hlasitost systému vzdáleného zařízení</string>
+  <string name="mute">Ztlumit</string>
 </resources>

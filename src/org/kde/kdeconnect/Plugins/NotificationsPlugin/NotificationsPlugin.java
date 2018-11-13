@@ -27,7 +27,6 @@ import android.app.Notification;
 import android.app.PendingIntent;
 import android.app.RemoteInput;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
@@ -41,13 +40,14 @@ import android.provider.Settings;
 import android.service.notification.StatusBarNotification;
 import android.support.annotation.RequiresApi;
 import android.support.v4.app.NotificationCompat;
+import android.text.SpannableString;
 import android.util.Log;
 
 import org.kde.kdeconnect.Helpers.AppsHelper;
 import org.kde.kdeconnect.NetworkPacket;
 import org.kde.kdeconnect.Plugins.Plugin;
+import org.kde.kdeconnect.UserInterface.DeviceSettingsActivity;
 import org.kde.kdeconnect.UserInterface.MainActivity;
-import org.kde.kdeconnect.UserInterface.SettingsActivity;
 import org.kde.kdeconnect_tp.R;
 
 import java.io.ByteArrayOutputStream;
@@ -85,7 +85,7 @@ public class NotificationsPlugin extends Plugin implements NotificationReceiver.
     }
 
     @Override
-    public void startPreferencesActivity(final SettingsActivity parentActivity) {
+    public void startPreferencesActivity(final DeviceSettingsActivity parentActivity) {
         if (hasPermission()) {
             Intent intent = new Intent(parentActivity, NotificationFilterActivity.class);
             parentActivity.startActivity(intent);
@@ -108,17 +108,14 @@ public class NotificationsPlugin extends Plugin implements NotificationReceiver.
 
         appDatabase = new AppDatabase(context, true);
 
-        NotificationReceiver.RunCommand(context, new NotificationReceiver.InstanceCallback() {
-            @Override
-            public void onServiceStart(NotificationReceiver service) {
+        NotificationReceiver.RunCommand(context, service -> {
 
-                service.addListener(NotificationsPlugin.this);
+            service.addListener(NotificationsPlugin.this);
 
-                serviceReady = service.isConnected();
+            serviceReady = service.isConnected();
 
-                if (serviceReady) {
-                    sendCurrentNotifications(service);
-                }
+            if (serviceReady) {
+                sendCurrentNotifications(service);
             }
         });
 
@@ -128,12 +125,7 @@ public class NotificationsPlugin extends Plugin implements NotificationReceiver.
     @Override
     public void onDestroy() {
 
-        NotificationReceiver.RunCommand(context, new NotificationReceiver.InstanceCallback() {
-            @Override
-            public void onServiceStart(NotificationReceiver service) {
-                service.removeListener(NotificationsPlugin.this);
-            }
-        });
+        NotificationReceiver.RunCommand(context, service -> service.removeListener(NotificationsPlugin.this));
     }
 
     @Override
@@ -339,7 +331,7 @@ public class NotificationsPlugin extends Plugin implements NotificationReceiver.
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
                 try {
                     Bundle extras = notification.extras;
-                    title = extras.getString(TITLE_KEY);
+                    title = extractStringFromExtra(extras, TITLE_KEY);
                 } catch (Exception e) {
                     Log.w("NotificationPlugin", "problem parsing notification extras for " + notification.tickerText);
                     e.printStackTrace();
@@ -408,6 +400,20 @@ public class NotificationsPlugin extends Plugin implements NotificationReceiver.
     }
 
 
+    private static String extractStringFromExtra(Bundle extras, String key) {
+        Object extra = extras.get(key);
+        if (extra == null) {
+            return null;
+        } else if (extra instanceof String) {
+            return (String) extra;
+        } else if (extra instanceof SpannableString) {
+            return extra.toString();
+        } else {
+            Log.e("NotificationsPlugin", "Don't know how to extract text from extra of type: " + extra.getClass().getCanonicalName());
+            return null;
+        }
+    }
+
     /**
      * Returns the ticker text of the notification.
      * If device android version is KitKat or newer, the title and text of the notification is used
@@ -422,10 +428,8 @@ public class NotificationsPlugin extends Plugin implements NotificationReceiver.
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
                 try {
                     Bundle extras = notification.extras;
-                    String extraTitle = extras.getString(TITLE_KEY);
-                    String extraText = null;
-                    Object extraTextExtra = extras.get(TEXT_KEY);
-                    if (extraTextExtra != null) extraText = extraTextExtra.toString();
+                    String extraTitle = extractStringFromExtra(extras, TITLE_KEY);
+                    String extraText = extractStringFromExtra(extras, TEXT_KEY);
 
                     if (extraTitle != null && extraText != null && !extraText.isEmpty()) {
                         ticker = extraTitle + ": " + extraText;
@@ -461,22 +465,14 @@ public class NotificationsPlugin extends Plugin implements NotificationReceiver.
         if (np.getBoolean("request")) {
 
             if (serviceReady) {
-                NotificationReceiver.RunCommand(context, new NotificationReceiver.InstanceCallback() {
-                    @Override
-                    public void onServiceStart(NotificationReceiver service) {
-                        sendCurrentNotifications(service);
-                    }
-                });
+                NotificationReceiver.RunCommand(context, this::sendCurrentNotifications);
             }
 
         } else if (np.has("cancel")) {
 
-            NotificationReceiver.RunCommand(context, new NotificationReceiver.InstanceCallback() {
-                @Override
-                public void onServiceStart(NotificationReceiver service) {
-                    String dismissedId = np.getString("cancel");
-                    cancelNotificationCompat(service, dismissedId);
-                }
+            NotificationReceiver.RunCommand(context, service -> {
+                String dismissedId = np.getString("cancel");
+                cancelNotificationCompat(service, dismissedId);
             });
 
         } else if (np.has("requestReplyId") && np.has("message")) {
@@ -497,18 +493,12 @@ public class NotificationsPlugin extends Plugin implements NotificationReceiver.
         return new AlertDialog.Builder(deviceActivity)
                 .setTitle(R.string.pref_plugin_notifications)
                 .setMessage(R.string.no_permissions)
-                .setPositiveButton(R.string.open_settings, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
-                        Intent intent = new Intent("android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS");
-                        deviceActivity.startActivityForResult(intent, MainActivity.RESULT_NEEDS_RELOAD);
-                    }
+                .setPositiveButton(R.string.open_settings, (dialogInterface, i) -> {
+                    Intent intent = new Intent("android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS");
+                    deviceActivity.startActivityForResult(intent, MainActivity.RESULT_NEEDS_RELOAD);
                 })
-                .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
-                        //Do nothing
-                    }
+                .setNegativeButton(R.string.cancel, (dialogInterface, i) -> {
+                    //Do nothing
                 })
                 .create();
 

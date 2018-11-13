@@ -2,8 +2,8 @@ package org.kde.kdeconnect.Plugins.MousePadPlugin;
 
 import android.view.inputmethod.BaseInputConnection;
 
-public class KeyInputConnection extends BaseInputConnection {
-    private KeyListenerView view;
+class KeyInputConnection extends BaseInputConnection {
+    private final KeyListenerView view;
 
     public KeyInputConnection(KeyListenerView targetView, boolean fullEditor) {
         super(targetView, fullEditor);

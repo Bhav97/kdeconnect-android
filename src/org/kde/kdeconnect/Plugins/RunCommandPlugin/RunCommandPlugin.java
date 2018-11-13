@@ -33,16 +33,17 @@ import org.kde.kdeconnect.Plugins.Plugin;
 import org.kde.kdeconnect_tp.R;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 
 public class RunCommandPlugin extends Plugin {
 
-    public final static String PACKET_TYPE_RUNCOMMAND = "kdeconnect.runcommand";
-    public final static String PACKET_TYPE_RUNCOMMAND_REQUEST = "kdeconnect.runcommand.request";
-    public final static String PACKET_TYPE_RUNCOMMAND_ADD = "kdeconnect.runcommand.add";
+    private final static String PACKET_TYPE_RUNCOMMAND = "kdeconnect.runcommand";
+    private final static String PACKET_TYPE_RUNCOMMAND_REQUEST = "kdeconnect.runcommand.request";
 
-    private ArrayList<JSONObject> commandList = new ArrayList<>();
-    private ArrayList<CommandsChangedCallback> callbacks = new ArrayList<>();
+    private final ArrayList<JSONObject> commandList = new ArrayList<>();
+    private final ArrayList<CommandsChangedCallback> callbacks = new ArrayList<>();
+    private final ArrayList<CommandEntry> commandItems = new ArrayList<>();
 
     private boolean canAddCommand;
 
@@ -60,6 +61,10 @@ public class RunCommandPlugin extends Plugin {
 
     public ArrayList<JSONObject> getCommandList() {
         return commandList;
+    }
+
+    public ArrayList<CommandEntry> getCommandItems() {
+        return commandItems;
     }
 
     @Override
@@ -89,6 +94,7 @@ public class RunCommandPlugin extends Plugin {
         if (np.has("commandList")) {
             commandList.clear();
             try {
+                commandItems.clear();
                 JSONObject obj = new JSONObject(np.getString("commandList"));
                 Iterator<String> keys = obj.keys();
                 while (keys.hasNext()) {
@@ -96,7 +102,25 @@ public class RunCommandPlugin extends Plugin {
                     JSONObject o = obj.getJSONObject(s);
                     o.put("key", s);
                     commandList.add(o);
+
+                    try {
+                        commandItems.add(
+                                new CommandEntry(
+                                        o.getString("name"),
+                                        o.getString("command"),
+                                        o.getString("key")
+                                )
+                        );
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
                 }
+
+                Collections.sort(commandItems, (lhs, rhs) -> lhs.getName().compareTo(rhs.getName()) );
+
+                Intent updateWidget = new Intent(context, RunCommandWidget.class);
+                context.sendBroadcast(updateWidget);
+
             } catch (JSONException e) {
                 e.printStackTrace();
             }
@@ -153,17 +177,14 @@ public class RunCommandPlugin extends Plugin {
         return context.getString(R.string.pref_plugin_runcommand);
     }
 
-    public void addCommand(String name, String command){
-
-        NetworkPacket np = new NetworkPacket(PACKET_TYPE_RUNCOMMAND_ADD);
-        np.set("name", name);
-        np.set("command", command);
-
-        device.sendPacket(np);
-    }
-
     public boolean canAddCommand(){
         return canAddCommand;
+    }
+
+    void sendSetupPacket() {
+        NetworkPacket np = new NetworkPacket(RunCommandPlugin.PACKET_TYPE_RUNCOMMAND_REQUEST);
+        np.set("setup", true);
+        device.sendPacket(np);
     }
 
 }

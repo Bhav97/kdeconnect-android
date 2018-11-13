@@ -1,7 +1,6 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
   <string name="pref_plugin_telephony">مُخطِر المهاتفة</string>
-  <string name="pref_plugin_telephony_desc">أرسل إخطارات لرسائل SMS والمكالمات</string>
   <string name="pref_plugin_battery">تقرير البطّاريّة</string>
   <string name="pref_plugin_battery_desc">بلّغ عن حالة البطّاريّة دوريًّا</string>
   <string name="pref_plugin_sftp">اكشف نظام الملفّات</string>
@@ -46,6 +45,14 @@
     <item>الافتراضيّ</item>
     <item>الأسرع قليلًا</item>
     <item>الأسرع</item>
+  </string-array>
+  <string-array name="mousepad_acceleration_profile_entries">
+    <item>No Acceleration</item>
+    <item>Weakest</item>
+    <item>Weaker</item>
+    <item>Medium</item>
+    <item>Stronger</item>
+    <item>Strongest</item>
   </string-array>
   <string name="category_connected_devices">الأجهزة المقترن بها</string>
   <string name="category_not_paired_devices">الأجهزة المتوفّرة</string>
@@ -93,7 +100,6 @@
   <string name="device">الجهاز</string>
   <string name="pair_device">اقرن الجهاز</string>
   <string name="remote_control">التّحكّم البعيد</string>
-  <string name="settings">إعدادات كدي المتّصل</string>
   <string name="mpris_play">شغّل</string>
   <string name="mpris_previous">السّابق</string>
   <string name="mpris_rew">رجوع</string>
@@ -102,7 +108,6 @@
   <string name="mpris_volume">المستوى</string>
   <string name="mpris_settings">إعدادات الوسائط المتعدّدة</string>
   <string name="mpris_time_settings_title">زرّا التّقدّم والإرجاع</string>
-  <string name="mpris_time_settings_summary">اضبط الوقت عند نقر زرّيّ التّقديم أو الإرجاع.</string>
   <string-array name="mpris_time_entries">
     <item>10 ثوان</item>
     <item>20 ثانية</item>
@@ -110,7 +115,6 @@
     <item>دقيقة واحدة</item>
     <item>دقيقتان</item>
   </string-array>
-  <string name="share_to">شارك مع...</string>
   <string name="protocol_version_older">يستخدم هذا الجهاز إصدار ميفاق أقدم</string>
   <string name="protocol_version_newer">يستخدم هذا الجهاز إصدار ميفاق أحدث</string>
   <string name="general_settings">إعدادات عامّة</string>

@@ -1,7 +1,6 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
   <string name="pref_plugin_telephony">Telefonski obavještavač</string>
-  <string name="pref_plugin_telephony_desc">Pošalji notifikacije za SMS i pozive</string>
   <string name="pref_plugin_battery">Baterijski izvještaj</string>
   <string name="pref_plugin_battery_desc">Periodično javi baterijski status</string>
   <string name="pref_plugin_sftp">Otkrivanje datotečnog sistema</string>
@@ -32,6 +31,14 @@
     <item>Default</item>
     <item>Above Default</item>
     <item>Fastest</item>
+  </string-array>
+  <string-array name="mousepad_acceleration_profile_entries">
+    <item>No Acceleration</item>
+    <item>Weakest</item>
+    <item>Weaker</item>
+    <item>Medium</item>
+    <item>Stronger</item>
+    <item>Strongest</item>
   </string-array>
   <string name="category_connected_devices">Spojeni uređaji</string>
   <string name="category_not_paired_devices">Dostupni uređaji</string>
@@ -73,7 +80,6 @@
   <string name="device">Uređaj</string>
   <string name="pair_device">Upari uređaj</string>
   <string name="remote_control">Daljinska kontrola</string>
-  <string name="settings">KDE Postavke Veze</string>
   <string name="mpris_play">Reprodukuj</string>
   <string name="mpris_previous">Prethodni</string>
   <string name="mpris_rew">Premotaj</string>
@@ -82,7 +88,6 @@
   <string name="mpris_volume">Glasnoća</string>
   <string name="mpris_settings">Postavke multimedije</string>
   <string name="mpris_time_settings_title">Dugmad za naprijed/premotavanje</string>
-  <string name="mpris_time_settings_summary">Postavi vrijeme na ubrzano ili premotaj multimedijalnu datoteku.</string>
   <string-array name="mpris_time_entries">
     <item>10 sekundi</item>
     <item>20 sekundi</item>
@@ -90,7 +95,6 @@
     <item>1 minuta</item>
     <item>2 minute</item>
   </string-array>
-  <string name="share_to">Podijeli na...</string>
   <string name="protocol_version_older">Ovaj uređaj koristi staru verziju protokola</string>
   <string name="protocol_version_newer">Ovaj uređaj koristi noviju verziju protokola</string>
   <string name="general_settings">Opšte postavke</string>

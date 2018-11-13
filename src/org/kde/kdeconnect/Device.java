@@ -76,7 +76,7 @@ public class Device implements BaseLink.PacketReceiver {
     private PairStatus pairStatus;
 
     private final CopyOnWriteArrayList<PairingCallback> pairingCallback = new CopyOnWriteArrayList<>();
-    private Map<String, BasePairingHandler> pairingHandlers = new HashMap<>();
+    private final Map<String, BasePairingHandler> pairingHandlers = new HashMap<>();
 
     private final CopyOnWriteArrayList<BaseLink> links = new CopyOnWriteArrayList<>();
 
@@ -103,11 +103,13 @@ public class Device implements BaseLink.PacketReceiver {
     public enum DeviceType {
         Phone,
         Tablet,
-        Computer;
+        Computer,
+        Tv;
 
-        public static DeviceType FromString(String s) {
+        static DeviceType FromString(String s) {
             if ("tablet".equals(s)) return Tablet;
             if ("phone".equals(s)) return Phone;
+            if ("tv".equals(s)) return Tv;
             return Computer; //Default
         }
 
@@ -117,6 +119,8 @@ public class Device implements BaseLink.PacketReceiver {
                     return "tablet";
                 case Phone:
                     return "phone";
+                case Tv:
+                    return "tv";
                 default:
                     return "desktop";
             }
@@ -194,6 +198,9 @@ public class Device implements BaseLink.PacketReceiver {
                 break;
             case Tablet:
                 drawableId = R.drawable.ic_device_tablet;
+                break;
+            case Tv:
+                drawableId = R.drawable.ic_device_tv;
                 break;
             default:
                 drawableId = R.drawable.ic_device_laptop;
@@ -397,7 +404,9 @@ public class Device implements BaseLink.PacketReceiver {
 
         Resources res = getContext().getResources();
 
-        Notification noti = new NotificationCompat.Builder(getContext())
+        final NotificationManager notificationManager = (NotificationManager) getContext().getSystemService(Context.NOTIFICATION_SERVICE);
+
+        Notification noti = new NotificationCompat.Builder(getContext(), NotificationHelper.Channels.DEFAULT)
                 .setContentTitle(res.getString(R.string.pairing_request_from, getName()))
                 .setContentText(res.getString(R.string.tap_to_answer))
                 .setContentIntent(pendingIntent)
@@ -409,7 +418,6 @@ public class Device implements BaseLink.PacketReceiver {
                 .setDefaults(Notification.DEFAULT_ALL)
                 .build();
 
-        final NotificationManager notificationManager = (NotificationManager) getContext().getSystemService(Context.NOTIFICATION_SERVICE);
         NotificationHelper.notifyCompat(notificationManager, notificationId, noti);
 
         BackgroundService.addGuiInUseCounter(context);
@@ -613,7 +621,7 @@ public class Device implements BaseLink.PacketReceiver {
         }
     }
 
-    private SendPacketStatusCallback defaultCallback = new SendPacketStatusCallback() {
+    private final SendPacketStatusCallback defaultCallback = new SendPacketStatusCallback() {
         @Override
         public void onSuccess() {
         }
@@ -638,12 +646,7 @@ public class Device implements BaseLink.PacketReceiver {
 
     //Async
     public void sendPacket(final NetworkPacket np, final SendPacketStatusCallback callback) {
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                sendPacketBlocking(np, callback);
-            }
-        }).start();
+        new Thread(() -> sendPacketBlocking(np, callback)).start();
     }
 
     public boolean sendPacketBlocking(final NetworkPacket np, final SendPacketStatusCallback callback) {
@@ -691,7 +694,7 @@ public class Device implements BaseLink.PacketReceiver {
         return (T) getPlugin(Plugin.getPluginKey(pluginClass), includeFailed);
     }
 
-    public Plugin getPlugin(String pluginKey) {
+    private Plugin getPlugin(String pluginKey) {
         return getPlugin(pluginKey, false);
     }
 
@@ -904,12 +907,12 @@ public class Device implements BaseLink.PacketReceiver {
         return m_supportedPlugins;
     }
 
-    public void hackToMakeRetrocompatiblePacketTypes(NetworkPacket np) {
+    private void hackToMakeRetrocompatiblePacketTypes(NetworkPacket np) {
         if (protocolVersion >= 6) return;
         np.mType = np.getType().replace(".request", "");
     }
 
-    public String hackToMakeRetrocompatiblePacketTypes(String type) {
+    private String hackToMakeRetrocompatiblePacketTypes(String type) {
         if (protocolVersion >= 6) return type;
         return type.replace(".request", "");
     }

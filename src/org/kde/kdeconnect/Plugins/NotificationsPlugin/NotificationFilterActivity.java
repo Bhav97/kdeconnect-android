@@ -15,8 +15,8 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>. 
-*/
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 
 package org.kde.kdeconnect.Plugins.NotificationsPlugin;
 
@@ -32,7 +32,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.CheckedTextView;
 import android.widget.ListView;
@@ -43,14 +42,15 @@ import org.kde.kdeconnect.UserInterface.ThemeUtil;
 import org.kde.kdeconnect_tp.R;
 
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.List;
 
 public class NotificationFilterActivity extends AppCompatActivity {
 
     private AppDatabase appDatabase;
+    private ListView listView;
 
     static class AppListInfo {
+
         String pkg;
         String name;
         Drawable icon;
@@ -63,17 +63,17 @@ public class NotificationFilterActivity extends AppCompatActivity {
 
         @Override
         public int getCount() {
-            return apps.length;
+            return apps.length + 1;
         }
 
         @Override
         public AppListInfo getItem(int position) {
-            return apps[position];
+            return apps[position - 1];
         }
 
         @Override
         public long getItemId(int position) {
-            return position;
+            return position - 1;
         }
 
         public View getView(int position, View view, ViewGroup parent) {
@@ -82,9 +82,14 @@ public class NotificationFilterActivity extends AppCompatActivity {
                 view = inflater.inflate(android.R.layout.simple_list_item_multiple_choice, null, true);
             }
             CheckedTextView checkedTextView = (CheckedTextView) view;
-            checkedTextView.setText(apps[position].name);
-            checkedTextView.setCompoundDrawablesWithIntrinsicBounds(apps[position].icon, null, null, null);
-            checkedTextView.setCompoundDrawablePadding((int) (8 * getResources().getDisplayMetrics().density));
+            if (position == 0) {
+                checkedTextView.setText(R.string.all);
+                checkedTextView.setCompoundDrawablesWithIntrinsicBounds(null, null, null, null);
+            } else {
+                checkedTextView.setText(apps[position - 1].name);
+                checkedTextView.setCompoundDrawablesWithIntrinsicBounds(apps[position - 1].icon, null, null, null);
+                checkedTextView.setCompoundDrawablePadding((int) (8 * getResources().getDisplayMetrics().density));
+            }
 
             return view;
         }
@@ -98,59 +103,54 @@ public class NotificationFilterActivity extends AppCompatActivity {
         setContentView(R.layout.activity_notification_filter);
         appDatabase = new AppDatabase(NotificationFilterActivity.this, false);
 
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
+        new Thread(() -> {
 
-                PackageManager packageManager = getPackageManager();
-                List<ApplicationInfo> appList = packageManager.getInstalledApplications(0);
-                int count = appList.size();
+            PackageManager packageManager = getPackageManager();
+            List<ApplicationInfo> appList = packageManager.getInstalledApplications(0);
+            int count = appList.size();
 
-                apps = new AppListInfo[count];
-                for (int i = 0; i < count; i++) {
-                    ApplicationInfo appInfo = appList.get(i);
-                    apps[i] = new AppListInfo();
-                    apps[i].pkg = appInfo.packageName;
-                    apps[i].name = appInfo.loadLabel(packageManager).toString();
-                    apps[i].icon = resizeIcon(appInfo.loadIcon(packageManager), 48);
-                    apps[i].isEnabled = appDatabase.isEnabled(appInfo.packageName);
-                }
-
-                Arrays.sort(apps, new Comparator<AppListInfo>() {
-                    @Override
-                    public int compare(AppListInfo lhs, AppListInfo rhs) {
-                        return StringsHelper.compare(lhs.name, rhs.name);
-                    }
-                });
-
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        displayAppList();
-                    }
-                });
+            apps = new AppListInfo[count];
+            for (int i = 0; i < count; i++) {
+                ApplicationInfo appInfo = appList.get(i);
+                apps[i] = new AppListInfo();
+                apps[i].pkg = appInfo.packageName;
+                apps[i].name = appInfo.loadLabel(packageManager).toString();
+                apps[i].icon = resizeIcon(appInfo.loadIcon(packageManager), 48);
+                apps[i].isEnabled = appDatabase.isEnabled(appInfo.packageName);
             }
+
+            Arrays.sort(apps, (lhs, rhs) -> StringsHelper.compare(lhs.name, rhs.name));
+
+            runOnUiThread(this::displayAppList);
         }).start();
 
     }
 
     private void displayAppList() {
 
-        final ListView listView = (ListView) findViewById(R.id.lvFilterApps);
+        listView = findViewById(R.id.lvFilterApps);
         AppListAdapter adapter = new AppListAdapter();
         listView.setAdapter(adapter);
         listView.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+        listView.setOnItemClickListener((adapterView, view, i, l) -> {
+
+            if (i == 0) {
+
+                boolean enabled = listView.isItemChecked(0);
+                for (int j = 0; j < apps.length; j++) {
+                    listView.setItemChecked(j, enabled);
+                }
+                appDatabase.setAllEnabled(enabled);
+            } else {
                 boolean checked = listView.isItemChecked(i);
-                appDatabase.setEnabled(apps[i].pkg, checked);
-                apps[i].isEnabled = checked;
+                appDatabase.setEnabled(apps[i - 1].pkg, checked);
+                apps[i - 1].isEnabled = checked;
             }
         });
 
+        listView.setItemChecked(0, appDatabase.getAllEnabled()); //"Select all" button
         for (int i = 0; i < apps.length; i++) {
-            listView.setItemChecked(i, apps[i].isEnabled);
+            listView.setItemChecked(i + 1, apps[i].isEnabled);
         }
 
         listView.setVisibility(View.VISIBLE);
@@ -182,7 +182,6 @@ public class NotificationFilterActivity extends AppCompatActivity {
         icon.draw(canvas);
 
         return new BitmapDrawable(res, bitmap);
-
 
     }
 }

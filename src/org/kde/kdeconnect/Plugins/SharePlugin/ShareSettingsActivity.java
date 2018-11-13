@@ -36,20 +36,14 @@ public class ShareSettingsActivity extends PluginSettingsActivity {
         filePicker = findPreference("share_destination_folder_preference");
 
         if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)) {
-            customDownloads.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
-                @Override
-                public boolean onPreferenceChange(Preference preference, Object newValue) {
-                    updateFilePickerStatus((Boolean) newValue);
-                    return true;
-                }
+            customDownloads.setOnPreferenceChangeListener((preference, newValue) -> {
+                updateFilePickerStatus((Boolean) newValue);
+                return true;
             });
-            filePicker.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
-                @Override
-                public boolean onPreferenceClick(Preference preference) {
-                    Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
-                    startActivityForResult(intent, RESULT_PICKER);
-                    return true;
-                }
+            filePicker.setOnPreferenceClickListener(preference -> {
+                Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
+                startActivityForResult(intent, RESULT_PICKER);
+                return true;
             });
         } else {
             customDownloads.setEnabled(false);
@@ -60,7 +54,7 @@ public class ShareSettingsActivity extends PluginSettingsActivity {
         updateFilePickerStatus(customized);
     }
 
-    void updateFilePickerStatus(boolean enabled) {
+    private void updateFilePickerStatus(boolean enabled) {
         filePicker.setEnabled(enabled);
         String path = PreferenceManager.getDefaultSharedPreferences(this).getString(PREFERENCE_DESTINATION, null);
         if (enabled && path != null) {

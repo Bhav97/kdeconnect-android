@@ -31,7 +31,7 @@ import java.lang.reflect.Method;
 import java.net.Socket;
 import java.util.HashMap;
 
-public class LanLinkProviderTest extends AndroidTestCase {
+class LanLinkProviderTest extends AndroidTestCase {
 
     private LanLinkProvider linkProvider;
 
@@ -42,12 +42,6 @@ public class LanLinkProviderTest extends AndroidTestCase {
         System.setProperty("dexmaker.dexcache", getContext().getCacheDir().getPath());
 
         linkProvider = new LanLinkProvider(getContext());
-    }
-
-    @Override
-    protected void tearDown() throws Exception {
-        super.tearDown();
-
     }
 
     public void testIdentityPacketReceived() throws Exception {
@@ -63,22 +57,14 @@ public class LanLinkProviderTest extends AndroidTestCase {
         Mockito.when(networkPacket.serialize()).thenReturn(serialized);
 
         Socket channel = Mockito.mock(Socket.class);
-        try {
-            Method method = LanLinkProvider.class.getDeclaredMethod("identityPacketReceived", NetworkPacket.class, Socket.class, LanLink.ConnectionStarted.class);
-            method.setAccessible(true);
-            method.invoke(linkProvider, networkPacket, channel, LanLink.ConnectionStarted.Locally);
-        } catch (Exception e) {
-            throw e;
-        }
+        Method method = LanLinkProvider.class.getDeclaredMethod("identityPacketReceived", NetworkPacket.class, Socket.class, LanLink.ConnectionStarted.class);
+        method.setAccessible(true);
+        method.invoke(linkProvider, networkPacket, channel, LanLink.ConnectionStarted.Locally);
 
         HashMap<String, LanLink> visibleComputers;
-        try {
-            Field field = LanLinkProvider.class.getDeclaredField("visibleComputers");
-            field.setAccessible(true);
-            visibleComputers = (HashMap<String, LanLink>) field.get(linkProvider);
-        } catch (Exception e) {
-            throw e;
-        }
+        Field field = LanLinkProvider.class.getDeclaredField("visibleComputers");
+        field.setAccessible(true);
+        visibleComputers = (HashMap<String, LanLink>) field.get(linkProvider);
         assertNotNull(visibleComputers.get("testDevice"));
 
     }

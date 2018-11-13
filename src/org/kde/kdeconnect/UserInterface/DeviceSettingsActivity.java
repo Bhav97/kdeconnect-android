@@ -29,7 +29,7 @@ import org.kde.kdeconnect.Device;
 
 import java.util.List;
 
-public class SettingsActivity extends AppCompatPreferenceActivity {
+public class DeviceSettingsActivity extends AppCompatPreferenceActivity {
 
     static private String deviceId; //Static because if we get here by using the back button in the action bar, the extra deviceId will not be set.
 
@@ -44,24 +44,16 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
             deviceId = getIntent().getStringExtra("deviceId");
         }
 
-        BackgroundService.RunCommand(getApplicationContext(), new BackgroundService.InstanceCallback() {
-            @Override
-            public void onServiceStart(BackgroundService service) {
-                final Device device = service.getDevice(deviceId);
-                if (device == null) {
-                    SettingsActivity.this.runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            SettingsActivity.this.finish();
-                        }
-                    });
-                    return;
-                }
-                List<String> plugins = device.getSupportedPlugins();
-                for (final String pluginKey : plugins) {
-                    PluginPreference pref = new PluginPreference(SettingsActivity.this, pluginKey, device);
-                    preferenceScreen.addPreference(pref);
-                }
+        BackgroundService.RunCommand(getApplicationContext(), service -> {
+            final Device device = service.getDevice(deviceId);
+            if (device == null) {
+                DeviceSettingsActivity.this.runOnUiThread(DeviceSettingsActivity.this::finish);
+                return;
+            }
+            List<String> plugins = device.getSupportedPlugins();
+            for (final String pluginKey : plugins) {
+                PluginPreference pref = new PluginPreference(DeviceSettingsActivity.this, pluginKey, device);
+                preferenceScreen.addPreference(pref);
             }
         });
     }

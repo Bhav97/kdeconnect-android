@@ -1,7 +1,6 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
   <string name="pref_plugin_telephony">События телефонии</string>
-  <string name="pref_plugin_telephony_desc">Отправка уведомлений об SMS и звонках</string>
   <string name="pref_plugin_battery">Состояние батареи</string>
   <string name="pref_plugin_battery_desc">Периодическое информирование о состоянии батареи</string>
   <string name="pref_plugin_sftp">Просмотр файловой системы</string>
@@ -53,6 +52,14 @@
     <item>Высокая</item>
     <item>Самая высокая</item>
   </string-array>
+  <string-array name="mousepad_acceleration_profile_entries">
+    <item>No Acceleration</item>
+    <item>Weakest</item>
+    <item>Weaker</item>
+    <item>Medium</item>
+    <item>Stronger</item>
+    <item>Strongest</item>
+  </string-array>
   <string name="category_connected_devices">Подключённые устройства</string>
   <string name="category_not_paired_devices">Доступные устройства</string>
   <string name="category_remembered_devices">Известные устройства</string>
@@ -101,7 +108,6 @@
   <string name="device">Устройство</string>
   <string name="pair_device">Сопрячь устройство</string>
   <string name="remote_control">Дистанционное управление</string>
-  <string name="settings">Настройка KDE Connect</string>
   <string name="mpris_play">Воспроизведение</string>
   <string name="mpris_previous">Предыдущая</string>
   <string name="mpris_rew">Назад</string>
@@ -110,7 +116,6 @@
   <string name="mpris_volume">Громкость</string>
   <string name="mpris_settings">Настройка мультимедиа</string>
   <string name="mpris_time_settings_title">Кнопки вперёд/назад</string>
-  <string name="mpris_time_settings_summary">Дальность перемотки вперёд/назад при нажатии.</string>
   <string-array name="mpris_time_entries">
     <item>10 секунд</item>
     <item>20 секунд</item>
@@ -118,7 +123,6 @@
     <item>1 минута</item>
     <item>2 минуты</item>
   </string-array>
-  <string name="share_to">Отправить на...</string>
   <string name="protocol_version_older">Это устройство использует старую версию протокола</string>
   <string name="protocol_version_newer">Это устройство использует более новую версию протокола</string>
   <string name="general_settings">Общие параметры</string>

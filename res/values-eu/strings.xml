@@ -1,7 +1,6 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
   <string name="pref_plugin_telephony">Telefonia jakinarazlea</string>
-  <string name="pref_plugin_telephony_desc">Bidali jakinarazpenak SMSak eta deiak jasotzean</string>
   <string name="pref_plugin_battery">Bateriaren txostena</string>
   <string name="pref_plugin_battery_desc">Bidali bateriaren egoera aldiro</string>
   <string name="pref_plugin_sftp">Fitxategi-sistemaren esposaketa</string>
@@ -53,6 +52,14 @@
     <item>Batezbestekoa baino azkarrago</item>
     <item>Azkarrena</item>
   </string-array>
+  <string-array name="mousepad_acceleration_profile_entries">
+    <item>No Acceleration</item>
+    <item>Weakest</item>
+    <item>Weaker</item>
+    <item>Medium</item>
+    <item>Stronger</item>
+    <item>Strongest</item>
+  </string-array>
   <string name="category_connected_devices">Konektatutako gailuak</string>
   <string name="category_not_paired_devices">Gailu eskuragarriak</string>
   <string name="category_remembered_devices">Gogoratutako gailuak</string>
@@ -101,7 +108,6 @@
   <string name="device">Gailua</string>
   <string name="pair_device">Parekatu gailua</string>
   <string name="remote_control">Urruneko kontrola</string>
-  <string name="settings">KDE Connect ezarpenak</string>
   <string name="mpris_play">Jo</string>
   <string name="mpris_previous">Aurrekoa</string>
   <string name="mpris_rew">Atzera eraman</string>
@@ -110,7 +116,6 @@
   <string name="mpris_volume">Bolumena</string>
   <string name="mpris_settings">Multimedia ezarpenak</string>
   <string name="mpris_time_settings_title">Atzera eraman / Aurrera eraman botoiak</string>
-  <string name="mpris_time_settings_summary">Doitu zenbat denbora eraman behar den aurrera / atzera sakatzean</string>
   <string-array name="mpris_time_entries">
     <item>10 segundo</item>
     <item>20 segundo</item>
@@ -118,7 +123,6 @@
     <item>minutu 1</item>
     <item>2 minutu</item>
   </string-array>
-  <string name="share_to">Partekatu honi...</string>
   <string name="protocol_version_older">Gailu honek protokoloaren bertsio zahar bat erabiltzen du</string>
   <string name="protocol_version_newer">Gailu honek protokoloaren bertsio berriago bat erabiltzen du</string>
   <string name="general_settings">Ezarpen orokorrak</string>

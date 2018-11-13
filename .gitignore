@@ -8,8 +8,7 @@ build/
 target/
 classes/
 gradle
-gradlew
-gradlew.bat
 *.iml
 *.keystore
 .directory
+GPUCache/

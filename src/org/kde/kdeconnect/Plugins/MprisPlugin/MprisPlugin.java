@@ -60,7 +60,7 @@ public class MprisPlugin extends Plugin {
         private boolean goPreviousAllowed = true;
         private boolean seekAllowed = true;
 
-        public MprisPlayer() {
+        MprisPlayer() {
             lastPositionTime = System.currentTimeMillis();
         }
 
@@ -201,14 +201,14 @@ public class MprisPlugin extends Plugin {
         }
     }
 
-    public final static String PACKET_TYPE_MPRIS = "kdeconnect.mpris";
-    public final static String PACKET_TYPE_MPRIS_REQUEST = "kdeconnect.mpris.request";
+    private final static String PACKET_TYPE_MPRIS = "kdeconnect.mpris";
+    private final static String PACKET_TYPE_MPRIS_REQUEST = "kdeconnect.mpris.request";
 
-    private HashMap<String, MprisPlayer> players = new HashMap<>();
+    private final HashMap<String, MprisPlayer> players = new HashMap<>();
     private boolean supportAlbumArtPayload = false;
-    private HashMap<String, Handler> playerStatusUpdated = new HashMap<>();
+    private final HashMap<String, Handler> playerStatusUpdated = new HashMap<>();
 
-    private HashMap<String, Handler> playerListUpdated = new HashMap<>();
+    private final HashMap<String, Handler> playerListUpdated = new HashMap<>();
 
     @Override
     public String getDisplayName() {

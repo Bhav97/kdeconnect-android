@@ -15,8 +15,8 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>. 
-*/
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 
 package org.kde.kdeconnect.Plugins.BatteryPlugin;
 
@@ -33,14 +33,14 @@ import org.kde.kdeconnect_tp.R;
 
 public class BatteryPlugin extends Plugin {
 
-    public final static String PACKET_TYPE_BATTERY = "kdeconnect.battery";
-    public final static String PACKET_TYPE_BATTERY_REQUEST = "kdeconnect.battery.request";
+    private final static String PACKET_TYPE_BATTERY = "kdeconnect.battery";
+    private final static String PACKET_TYPE_BATTERY_REQUEST = "kdeconnect.battery.request";
 
     // keep these fields in sync with kdeconnect-kded:BatteryPlugin.h:ThresholdBatteryEvent
     private static final int THRESHOLD_EVENT_NONE = 0;
     private static final int THRESHOLD_EVENT_BATTERY_LOW = 1;
 
-    private NetworkPacket batteryInfo = new NetworkPacket(PACKET_TYPE_BATTERY);
+    private final NetworkPacket batteryInfo = new NetworkPacket(PACKET_TYPE_BATTERY);
 
     @Override
     public String getDisplayName() {
@@ -65,14 +65,10 @@ public class BatteryPlugin extends Plugin {
             boolean lowBattery = Intent.ACTION_BATTERY_LOW.equals(batteryIntent.getAction());
             int thresholdEvent = lowBattery ? THRESHOLD_EVENT_BATTERY_LOW : THRESHOLD_EVENT_NONE;
 
-            if (isCharging == batteryInfo.getBoolean("isCharging")
-                    && currentCharge == batteryInfo.getInt("currentCharge")
-                    && thresholdEvent == batteryInfo.getInt("thresholdEvent")
+            if (isCharging != batteryInfo.getBoolean("isCharging")
+                    || currentCharge != batteryInfo.getInt("currentCharge")
+                    || thresholdEvent != batteryInfo.getInt("thresholdEvent")
                     ) {
-
-                //Do not send again if nothing has changed
-
-            } else {
 
                 batteryInfo.set("currentCharge", currentCharge);
                 batteryInfo.set("isCharging", isCharging);
@@ -80,7 +76,6 @@ public class BatteryPlugin extends Plugin {
                 device.sendPacket(batteryInfo);
 
             }
-
         }
     };
 

@@ -27,9 +27,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.os.Build;
 import android.support.v4.app.NotificationCompat;
-import android.support.v4.app.TaskStackBuilder;
 import android.util.Log;
 
 import org.kde.kdeconnect.Helpers.NotificationHelper;
@@ -42,8 +40,8 @@ import java.io.InputStream;
 
 public class ReceiveNotificationsPlugin extends Plugin {
 
-    public final static String PACKET_TYPE_NOTIFICATION = "kdeconnect.notification";
-    public final static String PACKET_TYPE_NOTIFICATION_REQUEST = "kdeconnect.notification.request";
+    private final static String PACKET_TYPE_NOTIFICATION = "kdeconnect.notification";
+    private final static String PACKET_TYPE_NOTIFICATION_REQUEST = "kdeconnect.notification.request";
 
     @Override
     public String getDisplayName() {
@@ -75,11 +73,10 @@ public class ReceiveNotificationsPlugin extends Plugin {
         if (!np.has("ticker") || !np.has("appName") || !np.has("id")) {
             Log.e("NotificationsPlugin", "Received notification package lacks properties");
         } else {
-            TaskStackBuilder stackBuilder = TaskStackBuilder.create(context);
-            stackBuilder.addParentStack(MainActivity.class);
-            stackBuilder.addNextIntent(new Intent(context, MainActivity.class));
-            PendingIntent resultPendingIntent = stackBuilder.getPendingIntent(
+            PendingIntent resultPendingIntent = PendingIntent.getActivity(
+                    context,
                     0,
+                    new Intent(context, MainActivity.class),
                     PendingIntent.FLAG_UPDATE_CURRENT
             );
 
@@ -87,10 +84,8 @@ public class ReceiveNotificationsPlugin extends Plugin {
             if (np.hasPayload()) {
                 int width = 64;   // default icon dimensions
                 int height = 64;
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-                    width = context.getResources().getDimensionPixelSize(android.R.dimen.notification_large_icon_width);
-                    height = context.getResources().getDimensionPixelSize(android.R.dimen.notification_large_icon_height);
-                }
+                width = context.getResources().getDimensionPixelSize(android.R.dimen.notification_large_icon_width);
+                height = context.getResources().getDimensionPixelSize(android.R.dimen.notification_large_icon_height);
                 final InputStream input = np.getPayload();
                 largeIcon = BitmapFactory.decodeStream(np.getPayload());
                 try {
@@ -105,7 +100,10 @@ public class ReceiveNotificationsPlugin extends Plugin {
                     }
                 }
             }
-            Notification noti = new NotificationCompat.Builder(context)
+
+            NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+
+            Notification noti = new NotificationCompat.Builder(context, NotificationHelper.Channels.DEFAULT)
                     .setContentTitle(np.getString("appName"))
                     .setContentText(np.getString("ticker"))
                     .setContentIntent(resultPendingIntent)
@@ -117,7 +115,6 @@ public class ReceiveNotificationsPlugin extends Plugin {
                     .setDefaults(Notification.DEFAULT_ALL)
                     .build();
 
-            NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
             NotificationHelper.notifyCompat(notificationManager, "kdeconnectId:" + np.getString("id", "0"), np.getInt("id", 0), noti);
 
         }

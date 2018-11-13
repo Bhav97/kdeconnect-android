@@ -15,8 +15,8 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>. 
-*/
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 
 package org.kde.kdeconnect.Plugins.SharePlugin;
 
@@ -31,7 +31,6 @@ import android.util.Log;
 import android.widget.Toast;
 
 import org.kde.kdeconnect.BackgroundService;
-import org.kde.kdeconnect.Device;
 import org.kde.kdeconnect.UserInterface.ThemeUtil;
 import org.kde.kdeconnect_tp.R;
 
@@ -40,7 +39,7 @@ import java.util.ArrayList;
 
 public class SendFileActivity extends AppCompatActivity {
 
-    String mDeviceId;
+    private String mDeviceId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,7 +50,7 @@ public class SendFileActivity extends AppCompatActivity {
 
         Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
         intent.setType("*/*");
-        if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2)) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
             intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
         }
         intent.addCategory(Intent.CATEGORY_OPENABLE);
@@ -77,7 +76,7 @@ public class SendFileActivity extends AppCompatActivity {
                         uris.add(uri);
                     }
 
-                    if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2)) {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
                         ClipData clipdata = data.getClipData();
                         if (clipdata != null) {
                             for (int i = 0; i < clipdata.getItemCount(); i++) {
@@ -89,18 +88,7 @@ public class SendFileActivity extends AppCompatActivity {
                     if (uris.isEmpty()) {
                         Log.w("SendFileActivity", "No files to send?");
                     } else {
-                        BackgroundService.RunCommand(this, new BackgroundService.InstanceCallback() {
-                            @Override
-                            public void onServiceStart(BackgroundService service) {
-                                Device device = service.getDevice(mDeviceId);
-                                if (device == null) {
-                                    Log.e("SendFileActivity", "Device is null");
-                                    finish();
-                                    return;
-                                }
-                                SharePlugin.queuedSendUriList(getApplicationContext(), device, uris);
-                            }
-                        });
+                        BackgroundService.runWithPlugin(this, mDeviceId, SharePlugin.class, plugin -> plugin.queuedSendUriList(uris));
                     }
                 }
                 finish();

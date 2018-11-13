@@ -32,19 +32,7 @@ import java.security.KeyPairGenerator;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 
-public class NetworkPacketTest extends AndroidTestCase {
-
-    @Override
-    protected void setUp() throws Exception {
-        super.setUp();
-        // Called before each test
-    }
-
-    @Override
-    protected void tearDown() throws Exception {
-        super.tearDown();
-        // Called after each test
-    }
+class NetworkPacketTest extends AndroidTestCase {
 
     public void testNetworkPacket() throws JSONException {
         NetworkPacket np = new NetworkPacket("com.test");
@@ -68,9 +56,9 @@ public class NetworkPacketTest extends AndroidTestCase {
         String json = "{\"id\":123,\"type\":\"test\",\"body\":{\"testing\":true}}";
         np2 = NetworkPacket.unserialize(json);
         assertEquals(np2.getId(), 123);
-        assertEquals(np2.getBoolean("testing"), true);
-        assertEquals(np2.getBoolean("not_testing"), false);
-        assertEquals(np2.getBoolean("not_testing", true), true);
+        assertTrue(np2.getBoolean("testing"));
+        assertFalse(np2.getBoolean("not_testing"));
+        assertTrue(np2.getBoolean("not_testing", true));
 
     }
 

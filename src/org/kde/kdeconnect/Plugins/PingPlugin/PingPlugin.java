@@ -27,7 +27,6 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.support.v4.app.NotificationCompat;
-import android.support.v4.app.TaskStackBuilder;
 import android.util.Log;
 
 import org.kde.kdeconnect.Helpers.NotificationHelper;
@@ -39,7 +38,7 @@ import org.kde.kdeconnect_tp.R;
 
 public class PingPlugin extends Plugin {
 
-    public final static String PACKET_TYPE_PING = "kdeconnect.ping";
+    private final static String PACKET_TYPE_PING = "kdeconnect.ping";
 
     @Override
     public String getDisplayName() {
@@ -61,11 +60,10 @@ public class PingPlugin extends Plugin {
 
         //Log.e("PingPacketReceiver", "was a ping!");
 
-        TaskStackBuilder stackBuilder = TaskStackBuilder.create(context);
-        stackBuilder.addParentStack(MainActivity.class);
-        stackBuilder.addNextIntent(new Intent(context, MainActivity.class));
-        PendingIntent resultPendingIntent = stackBuilder.getPendingIntent(
+        PendingIntent resultPendingIntent = PendingIntent.getActivity(
+                context,
                 0,
+                new Intent(context, MainActivity.class),
                 PendingIntent.FLAG_UPDATE_CURRENT
         );
 
@@ -79,7 +77,9 @@ public class PingPlugin extends Plugin {
             id = 42; //A unique id to create only one notification
         }
 
-        Notification noti = new NotificationCompat.Builder(context)
+        NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+
+        Notification noti = new NotificationCompat.Builder(context, NotificationHelper.Channels.DEFAULT)
                 .setContentTitle(device.getName())
                 .setContentText(message)
                 .setContentIntent(resultPendingIntent)
@@ -89,7 +89,6 @@ public class PingPlugin extends Plugin {
                 .setDefaults(Notification.DEFAULT_ALL)
                 .build();
 
-        NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
         NotificationHelper.notifyCompat(notificationManager, id, noti);
 
         return true;

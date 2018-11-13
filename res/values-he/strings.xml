@@ -1,7 +1,6 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
   <string name="pref_plugin_telephony">התראות טלפוניות</string>
-  <string name="pref_plugin_telephony_desc">שלח התראה על הודעות ושיחות</string>
   <string name="pref_plugin_battery">דיווח סוללה</string>
   <string name="pref_plugin_battery_desc">מדווח על אחוז הסוללה למחשב</string>
   <string name="pref_plugin_sftp">גישה לקבצים</string>
@@ -53,6 +52,14 @@
     <item>יותר מהברירת מחדל</item>
     <item>הכי מהיר</item>
   </string-array>
+  <string-array name="mousepad_acceleration_profile_entries">
+    <item>No Acceleration</item>
+    <item>Weakest</item>
+    <item>Weaker</item>
+    <item>Medium</item>
+    <item>Stronger</item>
+    <item>Strongest</item>
+  </string-array>
   <string name="category_connected_devices">התקנים מחוברים</string>
   <string name="category_not_paired_devices">התקנים זמינים</string>
   <string name="category_remembered_devices">התקנים זכורים</string>
@@ -101,7 +108,6 @@
   <string name="device">התקן</string>
   <string name="pair_device">התאם התקן</string>
   <string name="remote_control">שלוט מרחוק</string>
-  <string name="settings">הגדרות KDE Connect</string>
   <string name="mpris_play">נגן</string>
   <string name="mpris_previous">הקודם</string>
   <string name="mpris_rew">דילוג אחורה</string>
@@ -110,7 +116,6 @@
   <string name="mpris_volume">עוצמה</string>
   <string name="mpris_settings">הגדרות מדיה</string>
   <string name="mpris_time_settings_title">כפתור דילוג קדימה או אחורה</string>
-  <string name="mpris_time_settings_summary">בחר כמה זמן ידולג שלוחצים על דילוג קדימה או אחורה</string>
   <string-array name="mpris_time_entries">
     <item>10 שניות</item>
     <item>20 שניות</item>
@@ -118,7 +123,6 @@
     <item>דקה</item>
     <item>שתי דקות</item>
   </string-array>
-  <string name="share_to">שתף אל...</string>
   <string name="protocol_version_older">ההתקן משתמש בגרסה ישנה יותר</string>
   <string name="protocol_version_newer">ההתקן משתמש בגרסה חדשה יותר</string>
   <string name="general_settings">הגדרות כלליות</string>

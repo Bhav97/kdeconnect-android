@@ -221,7 +221,7 @@ public class BluetoothLinkProvider extends BaseLinkProvider {
     private class ClientRunnable extends BroadcastReceiver implements Runnable {
 
         private boolean continueProcessing = true;
-        private Map<BluetoothDevice, Thread> connectionThreads = new HashMap<>();
+        private final Map<BluetoothDevice, Thread> connectionThreads = new HashMap<>();
 
         void stopProcessing() {
             continueProcessing = false;
@@ -305,7 +305,7 @@ public class BluetoothLinkProvider extends BaseLinkProvider {
 
         private final BluetoothDevice device;
 
-        public ClientConnect(BluetoothDevice device) {
+        ClientConnect(BluetoothDevice device) {
             this.device = device;
         }
 

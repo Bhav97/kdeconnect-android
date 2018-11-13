@@ -20,12 +20,11 @@
 
 package org.kde.kdeconnect.Plugins.MousePadPlugin;
 
-import android.content.Context;
 import android.view.MotionEvent;
 import android.view.ViewConfiguration;
 
 
-public class MousePadGestureDetector {
+class MousePadGestureDetector {
 
     private static final int TAP_TIMEOUT = ViewConfiguration.getTapTimeout() + 100;
     private OnGestureListener mGestureListener;
@@ -41,14 +40,14 @@ public class MousePadGestureDetector {
         boolean onDoubleFingerTap(MotionEvent ev);
     }
 
-    public MousePadGestureDetector(Context ctx, OnGestureListener gestureListener) {
+    MousePadGestureDetector(OnGestureListener gestureListener) {
         if (gestureListener == null) {
             throw new IllegalArgumentException("gestureListener cannot be null");
         }
         mGestureListener = gestureListener;
     }
 
-    public boolean onTouchEvent(MotionEvent event) {
+    boolean onTouchEvent(MotionEvent event) {
         int action = event.getAction();
         switch (action & MotionEvent.ACTION_MASK) {
             case MotionEvent.ACTION_DOWN:

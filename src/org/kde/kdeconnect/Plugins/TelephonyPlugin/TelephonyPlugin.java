@@ -15,8 +15,8 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>. 
-*/
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 
 package org.kde.kdeconnect.Plugins.TelephonyPlugin;
 
@@ -29,31 +29,73 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.media.AudioManager;
 import android.os.Build;
-import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.content.ContextCompat;
 import android.telephony.PhoneNumberUtils;
-import android.telephony.SmsMessage;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 
 import org.kde.kdeconnect.Helpers.ContactsHelper;
 import org.kde.kdeconnect.NetworkPacket;
 import org.kde.kdeconnect.Plugins.Plugin;
-import org.kde.kdeconnect_tp.BuildConfig;
 import org.kde.kdeconnect_tp.R;
 
-import java.util.ArrayList;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 
 public class TelephonyPlugin extends Plugin {
 
-    private final static String PACKET_TYPE_TELEPHONY = "kdeconnect.telephony";
-    public final static String PACKET_TYPE_TELEPHONY_REQUEST = "kdeconnect.telephony.request";
-    private static final String KEY_PREF_BLOCKED_NUMBERS = "telephony_blocked_numbers";
 
+    /**
+     * Packet used for simple telephony events
+     * <p>
+     * It contains the key "event" which maps to a string indicating the type of event:
+     * - "ringing" - A phone call is incoming
+     * - "missedCall" - An incoming call was not answered
+     * - "sms" - An incoming SMS message
+     * - Note: As of this writing (15 May 2018) the SMS interface is being improved and this type of event
+     * is no longer the preferred way of handling SMS. Use the packets defined by the SMS plugin instead.
+     * <p>
+     * Depending on the event, other fields may be defined
+     */
+    public final static String PACKET_TYPE_TELEPHONY = "kdeconnect.telephony";
+
+    /**
+     * Old-style packet sent to request a simple telephony action
+     * <p>
+     * The two possible events used the be to request a message be sent or request the device
+     * silence its ringer
+     * <p>
+     * In case an SMS was being requested, the body was like so:
+     * { "sendSms": true,
+     * "phoneNumber": "542904563213",
+     * "messageBody": "Hi mom!"
+     * }
+     * <p>
+     * In case a ringer muted was requested, the body looked like so:
+     * { "action": "mute" }
+     * <p>
+     * As of 15 May 2018, the SMS interface is being improved. Use the packets defined by the
+     * SMS plugin instead for SMS events
+     * <p>
+     * Ringer mute requests are best handled by PACKET_TYPE_TELEPHONY_REQUEST_MUTE
+     * <p>
+     * This packet type is retained for backwards-compatibility with old desktop applications,
+     * but support should be dropped once those applications are no longer supported. New
+     * applications should not use this packet type.
+     */
+    @Deprecated
+    public final static String PACKET_TYPE_TELEPHONY_REQUEST = "kdeconnect.telephony.request";
+
+    /**
+     * Packet sent to indicate the user has requested the device mute its ringer
+     * <p>
+     * The body should be empty
+     */
+    private final static String PACKET_TYPE_TELEPHONY_REQUEST_MUTE = "kdeconnect.telephony.request_mute";
+
+    private static final String KEY_PREF_BLOCKED_NUMBERS = "telephony_blocked_numbers";
     private int lastState = TelephonyManager.CALL_STATE_IDLE;
     private NetworkPacket lastPacket = null;
     private boolean isMuted = false;
@@ -66,25 +108,7 @@ public class TelephonyPlugin extends Plugin {
 
             //Log.e("TelephonyPlugin","Telephony event: " + action);
 
-            if ("android.provider.Telephony.SMS_RECEIVED".equals(action)) {
-
-                final Bundle bundle = intent.getExtras();
-                if (bundle == null) return;
-                final Object[] pdus = (Object[]) bundle.get("pdus");
-                ArrayList<SmsMessage> messages = new ArrayList<>();
-
-                for (Object pdu : pdus) {
-                    // I hope, but am not sure, that the pdus array is in the order that the parts
-                    // of the SMS message should be
-                    // If it is not, I believe the pdu contains the information necessary to put it
-                    // in order, but in my testing the order seems to be correct, so I won't worry
-                    // about it now.
-                    messages.add(SmsMessage.createFromPdu((byte[]) pdu));
-                }
-
-                smsBroadcastReceived(messages);
-
-            } else if (TelephonyManager.ACTION_PHONE_STATE_CHANGED.equals(action)) {
+            if (TelephonyManager.ACTION_PHONE_STATE_CHANGED.equals(action)) {
 
                 String state = intent.getStringExtra(TelephonyManager.EXTRA_STATE);
                 int intState = TelephonyManager.CALL_STATE_IDLE;
@@ -100,8 +124,9 @@ public class TelephonyPlugin extends Plugin {
                 final int finalIntState = intState;
                 final String finalNumber = number;
 
-                callBroadcastReceived(finalIntState, finalNumber);
-
+                if (finalIntState != lastState) {
+                    callBroadcastReceived(finalIntState, finalNumber);
+                }
             }
         }
     };
@@ -159,15 +184,7 @@ public class TelephonyPlugin extends Plugin {
 
         switch (state) {
             case TelephonyManager.CALL_STATE_RINGING:
-                if (isMuted) {
-                    AudioManager am = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                        am.setStreamVolume(AudioManager.STREAM_RING, AudioManager.ADJUST_UNMUTE, 0);
-                    } else {
-                        am.setStreamMute(AudioManager.STREAM_RING, false);
-                    }
-                    isMuted = false;
-                }
+                unmuteRinger();
                 np.set("event", "ringing");
                 device.sendPacket(np);
                 break;
@@ -178,8 +195,7 @@ public class TelephonyPlugin extends Plugin {
                 break;
 
             case TelephonyManager.CALL_STATE_IDLE:
-
-                if (lastState != TelephonyManager.CALL_STATE_IDLE && lastPacket != null) {
+                if (lastPacket != null) {
 
                     //Resend a cancel of the last event (can either be "ringing" or "talking")
                     lastPacket.set("isCancel", "true");
@@ -190,15 +206,7 @@ public class TelephonyPlugin extends Plugin {
                         timer.schedule(new TimerTask() {
                             @Override
                             public void run() {
-                                if (isMuted) {
-                                    AudioManager am = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
-                                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                                        am.setStreamVolume(AudioManager.STREAM_RING, AudioManager.ADJUST_UNMUTE, 0);
-                                    } else {
-                                        am.setStreamMute(AudioManager.STREAM_RING, false);
-                                    }
-                                    isMuted = false;
-                                }
+                                unmuteRinger();
                             }
                         }, 500);
                     }
@@ -210,60 +218,36 @@ public class TelephonyPlugin extends Plugin {
                         np.set("contactName", lastPacket.getString("contactName", null));
                         device.sendPacket(np);
                     }
-
                 }
-
                 break;
-
         }
 
         lastPacket = np;
         lastState = state;
     }
 
-    private void smsBroadcastReceived(ArrayList<SmsMessage> messages) {
-
-        if (BuildConfig.DEBUG) {
-            if (!(messages.size() > 0)) {
-                throw new AssertionError("This method requires at least one message");
+    private void unmuteRinger() {
+        if (isMuted) {
+            AudioManager am = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                am.setStreamVolume(AudioManager.STREAM_RING, AudioManager.ADJUST_UNMUTE, 0);
+            } else {
+                am.setStreamMute(AudioManager.STREAM_RING, false);
             }
+            isMuted = false;
         }
+    }
 
-        NetworkPacket np = new NetworkPacket(PACKET_TYPE_TELEPHONY);
-
-        np.set("event", "sms");
-
-        StringBuilder messageBody = new StringBuilder();
-        for (int index = 0; index < messages.size(); index++) {
-            messageBody.append(messages.get(index).getMessageBody());
-        }
-        np.set("messageBody", messageBody.toString());
-
-        String phoneNumber = messages.get(0).getOriginatingAddress();
-
-        if (isNumberBlocked(phoneNumber))
-            return;
-
-        int permissionCheck = ContextCompat.checkSelfPermission(context,
-                Manifest.permission.READ_CONTACTS);
-
-        if (permissionCheck == PackageManager.PERMISSION_GRANTED) {
-            Map<String, String> contactInfo = ContactsHelper.phoneNumberLookup(context, phoneNumber);
-
-            if (contactInfo.containsKey("name")) {
-                np.set("contactName", contactInfo.get("name"));
+    private void muteRinger() {
+        if (!isMuted) {
+            AudioManager am = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                am.setStreamVolume(AudioManager.STREAM_RING, AudioManager.ADJUST_MUTE, 0);
+            } else {
+                am.setStreamMute(AudioManager.STREAM_RING, true);
             }
-
-            if (contactInfo.containsKey("photoID")) {
-                np.set("phoneThumbnail", ContactsHelper.photoId64Encoded(context, contactInfo.get("photoID")));
-            }
+            isMuted = true;
         }
-        if (phoneNumber != null) {
-            np.set("phoneNumber", phoneNumber);
-        }
-
-
-        device.sendPacket(np);
     }
 
     @Override
@@ -284,18 +268,17 @@ public class TelephonyPlugin extends Plugin {
 
     @Override
     public boolean onPacketReceived(NetworkPacket np) {
-        if (np.getString("action").equals("mute")) {
-            if (!isMuted) {
-                AudioManager am = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                    am.setStreamVolume(AudioManager.STREAM_RING, AudioManager.ADJUST_MUTE, 0);
-                } else {
-                    am.setStreamMute(AudioManager.STREAM_RING, true);
+
+        switch (np.getType()) {
+            case PACKET_TYPE_TELEPHONY_REQUEST:
+                if (np.getString("action").equals("mute")) {
+                    muteRinger();
                 }
-                isMuted = true;
-            }
+                break;
+            case PACKET_TYPE_TELEPHONY_REQUEST_MUTE:
+                muteRinger();
+                break;
         }
-        //Do nothing
         return true;
     }
 
@@ -313,12 +296,17 @@ public class TelephonyPlugin extends Plugin {
 
     @Override
     public String[] getSupportedPacketTypes() {
-        return new String[]{PACKET_TYPE_TELEPHONY_REQUEST};
+        return new String[]{
+                PACKET_TYPE_TELEPHONY_REQUEST,
+                PACKET_TYPE_TELEPHONY_REQUEST_MUTE,
+        };
     }
 
     @Override
     public String[] getOutgoingPacketTypes() {
-        return new String[]{PACKET_TYPE_TELEPHONY};
+        return new String[]{
+                PACKET_TYPE_TELEPHONY
+        };
     }
 
     @Override

@@ -14,21 +14,19 @@ import java.util.ArrayList;
 
 class NotificationUpdateCallback extends Device.SendPacketStatusCallback {
 
-    final Context context;
-    final Resources res;
-    final Device device;
-    final NotificationManager notificationManager;
-    final NotificationCompat.Builder builder;
+    private final Resources res;
+    private final Device device;
+    private final NotificationManager notificationManager;
+    private final NotificationCompat.Builder builder;
 
-    final ArrayList<NetworkPacket> toSend;
+    private final ArrayList<NetworkPacket> toSend;
 
-    final int notificationId;
+    private final int notificationId;
 
-    int sentFiles = 0;
-    final int numFiles;
+    private int sentFiles = 0;
+    private final int numFiles;
 
     NotificationUpdateCallback(Context context, Device device, ArrayList<NetworkPacket> toSend) {
-        this.context = context;
         this.toSend = toSend;
         this.device = device;
         this.res = context.getResources();
@@ -39,10 +37,12 @@ class NotificationUpdateCallback extends Device.SendPacketStatusCallback {
         } else {
             title = res.getString(R.string.outgoing_file_title, device.getName());
         }
-        notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
-        builder = new NotificationCompat.Builder(context)
+
+        notificationManager = (NotificationManager)context.getSystemService(Context.NOTIFICATION_SERVICE);
+        builder = new NotificationCompat.Builder(context, NotificationHelper.Channels.FILETRANSFER)
                 .setSmallIcon(android.R.drawable.stat_sys_upload)
                 .setAutoCancel(true)
+                .setOngoing(true)
                 .setProgress(100, 0, false)
                 .setContentTitle(title)
                 .setTicker(title);

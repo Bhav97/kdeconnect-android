@@ -21,7 +21,6 @@
 package org.kde.kdeconnect.Plugins.RemoteKeyboardPlugin;
 
 import android.graphics.drawable.Drawable;
-import android.os.Build;
 import android.os.SystemClock;
 import android.preference.PreferenceManager;
 import android.support.v4.content.ContextCompat;
@@ -43,17 +42,17 @@ import java.util.concurrent.locks.ReentrantLock;
 
 public class RemoteKeyboardPlugin extends Plugin {
 
-    public final static String PACKET_TYPE_MOUSEPAD_REQUEST = "kdeconnect.mousepad.request";
-    public final static String PACKET_TYPE_MOUSEPAD_ECHO = "kdeconnect.mousepad.echo";
-    public final static String PACKET_TYPE_MOUSEPAD_KEYBOARDSTATE = "kdeconnect.mousepad.keyboardstate";
+    private final static String PACKET_TYPE_MOUSEPAD_REQUEST = "kdeconnect.mousepad.request";
+    private final static String PACKET_TYPE_MOUSEPAD_ECHO = "kdeconnect.mousepad.echo";
+    private final static String PACKET_TYPE_MOUSEPAD_KEYBOARDSTATE = "kdeconnect.mousepad.keyboardstate";
 
     /**
      * Track and expose plugin instances to allow for a 'connected'-indicator in the IME:
      */
-    private static ArrayList<RemoteKeyboardPlugin> instances = new ArrayList<RemoteKeyboardPlugin>();
-    private static ReentrantLock instancesLock = new ReentrantLock(true);
+    private static final ArrayList<RemoteKeyboardPlugin> instances = new ArrayList<>();
+    private static final ReentrantLock instancesLock = new ReentrantLock(true);
 
-    public static ArrayList<RemoteKeyboardPlugin> getInstances() {
+    private static ArrayList<RemoteKeyboardPlugin> getInstances() {
         return instances;
     }
 
@@ -71,7 +70,7 @@ public class RemoteKeyboardPlugin extends Plugin {
         return instances.size() > 0;
     }
 
-    private static SparseIntArray specialKeyMap = new SparseIntArray();
+    private static final SparseIntArray specialKeyMap = new SparseIntArray();
 
     static {
         int i = 0;
@@ -84,31 +83,29 @@ public class RemoteKeyboardPlugin extends Plugin {
         specialKeyMap.put(++i, KeyEvent.KEYCODE_DPAD_DOWN);        // 7
         specialKeyMap.put(++i, KeyEvent.KEYCODE_PAGE_UP);          // 8
         specialKeyMap.put(++i, KeyEvent.KEYCODE_PAGE_DOWN);        // 9
-        if (Build.VERSION.SDK_INT >= 11) {
-            specialKeyMap.put(++i, KeyEvent.KEYCODE_MOVE_HOME);    // 10
-            specialKeyMap.put(++i, KeyEvent.KEYCODE_MOVE_END);     // 11
-            specialKeyMap.put(++i, KeyEvent.KEYCODE_ENTER); // 12
-            specialKeyMap.put(++i, KeyEvent.KEYCODE_FORWARD_DEL);  // 13
-            specialKeyMap.put(++i, KeyEvent.KEYCODE_ESCAPE);       // 14
-            specialKeyMap.put(++i, KeyEvent.KEYCODE_SYSRQ);        // 15
-            specialKeyMap.put(++i, KeyEvent.KEYCODE_SCROLL_LOCK);  // 16
-            ++i;           // 17
-            ++i;           // 18
-            ++i;           // 19
-            ++i;           // 20
-            specialKeyMap.put(++i, KeyEvent.KEYCODE_F1);           // 21
-            specialKeyMap.put(++i, KeyEvent.KEYCODE_F2);           // 22
-            specialKeyMap.put(++i, KeyEvent.KEYCODE_F3);           // 23
-            specialKeyMap.put(++i, KeyEvent.KEYCODE_F4);           // 24
-            specialKeyMap.put(++i, KeyEvent.KEYCODE_F5);           // 25
-            specialKeyMap.put(++i, KeyEvent.KEYCODE_F6);           // 26
-            specialKeyMap.put(++i, KeyEvent.KEYCODE_F7);           // 27
-            specialKeyMap.put(++i, KeyEvent.KEYCODE_F8);           // 28
-            specialKeyMap.put(++i, KeyEvent.KEYCODE_F9);           // 29
-            specialKeyMap.put(++i, KeyEvent.KEYCODE_F10);          // 30
-            specialKeyMap.put(++i, KeyEvent.KEYCODE_F11);          // 31
-            specialKeyMap.put(++i, KeyEvent.KEYCODE_F12);          // 21
-        }
+        specialKeyMap.put(++i, KeyEvent.KEYCODE_MOVE_HOME);    // 10
+        specialKeyMap.put(++i, KeyEvent.KEYCODE_MOVE_END);     // 11
+        specialKeyMap.put(++i, KeyEvent.KEYCODE_ENTER); // 12
+        specialKeyMap.put(++i, KeyEvent.KEYCODE_FORWARD_DEL);  // 13
+        specialKeyMap.put(++i, KeyEvent.KEYCODE_ESCAPE);       // 14
+        specialKeyMap.put(++i, KeyEvent.KEYCODE_SYSRQ);        // 15
+        specialKeyMap.put(++i, KeyEvent.KEYCODE_SCROLL_LOCK);  // 16
+        ++i;           // 17
+        ++i;           // 18
+        ++i;           // 19
+        ++i;           // 20
+        specialKeyMap.put(++i, KeyEvent.KEYCODE_F1);           // 21
+        specialKeyMap.put(++i, KeyEvent.KEYCODE_F2);           // 22
+        specialKeyMap.put(++i, KeyEvent.KEYCODE_F3);           // 23
+        specialKeyMap.put(++i, KeyEvent.KEYCODE_F4);           // 24
+        specialKeyMap.put(++i, KeyEvent.KEYCODE_F5);           // 25
+        specialKeyMap.put(++i, KeyEvent.KEYCODE_F6);           // 26
+        specialKeyMap.put(++i, KeyEvent.KEYCODE_F7);           // 27
+        specialKeyMap.put(++i, KeyEvent.KEYCODE_F8);           // 28
+        specialKeyMap.put(++i, KeyEvent.KEYCODE_F9);           // 29
+        specialKeyMap.put(++i, KeyEvent.KEYCODE_F10);          // 30
+        specialKeyMap.put(++i, KeyEvent.KEYCODE_F11);          // 31
+        specialKeyMap.put(++i, KeyEvent.KEYCODE_F12);          // 21
     }
 
     @Override
@@ -121,12 +118,7 @@ public class RemoteKeyboardPlugin extends Plugin {
             releaseInstances();
         }
         if (RemoteKeyboardService.instance != null)
-            RemoteKeyboardService.instance.handler.post(new Runnable() {
-                @Override
-                public void run() {
-                    RemoteKeyboardService.instance.updateInputView();
-                }
-            });
+            RemoteKeyboardService.instance.handler.post(() -> RemoteKeyboardService.instance.updateInputView());
         return true;
     }
 
@@ -137,12 +129,7 @@ public class RemoteKeyboardPlugin extends Plugin {
             if (instances.contains(this)) {
                 instances.remove(this);
                 if (instances.size() < 1 && RemoteKeyboardService.instance != null)
-                    RemoteKeyboardService.instance.handler.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            RemoteKeyboardService.instance.updateInputView();
-                        }
-                    });
+                    RemoteKeyboardService.instance.handler.post(() -> RemoteKeyboardService.instance.updateInputView());
             }
         } finally {
             releaseInstances();
@@ -293,10 +280,10 @@ public class RemoteKeyboardPlugin extends Plugin {
                 int[] actions = {EditorInfo.IME_ACTION_GO, EditorInfo.IME_ACTION_NEXT,
                         EditorInfo.IME_ACTION_SEND, EditorInfo.IME_ACTION_SEARCH,
                         EditorInfo.IME_ACTION_DONE};  // note: DONE should be last or we might hide the ime instead of "go"
-                for (int i = 0; i < actions.length; i++) {
-                    if ((editorInfo.imeOptions & actions[i]) == actions[i]) {
+                for (int action : actions) {
+                    if ((editorInfo.imeOptions & action) == action) {
 //                        Log.d("RemoteKeyboardPlugin", "Enter-action: " + actions[i]);
-                        inputConn.performEditorAction(actions[i]);
+                        inputConn.performEditorAction(action);
                         return true;
                     }
                 }

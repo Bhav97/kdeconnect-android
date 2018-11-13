@@ -37,7 +37,7 @@ public class ClipboardListener {
         void clipboardChanged(String content);
     }
 
-    private HashSet<ClipboardObserver> observers = new HashSet<>();
+    private final HashSet<ClipboardObserver> observers = new HashSet<>();
 
     private final Context context;
     private String currentContent;
@@ -62,54 +62,39 @@ public class ClipboardListener {
         observers.remove(observer);
     }
 
-    ClipboardListener(final Context ctx) {
+    private ClipboardListener(final Context ctx) {
         context = ctx;
 
-        if (android.os.Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB) {
-            return;
-        }
+        new Handler(Looper.getMainLooper()).post(() -> {
+            cm = (ClipboardManager) context.getSystemService(Context.CLIPBOARD_SERVICE);
+            listener = () -> {
+                try {
 
-        new Handler(Looper.getMainLooper()).post(new Runnable() {
-            @Override
-            public void run() {
-                cm = (ClipboardManager) context.getSystemService(Context.CLIPBOARD_SERVICE);
-                listener = new ClipboardManager.OnPrimaryClipChangedListener() {
-                    @Override
-                    public void onPrimaryClipChanged() {
-                        try {
+                    ClipData.Item item = cm.getPrimaryClip().getItemAt(0);
+                    String content = item.coerceToText(context).toString();
 
-                            ClipData.Item item = cm.getPrimaryClip().getItemAt(0);
-                            String content = item.coerceToText(context).toString();
-
-                            if (content.equals(currentContent)) {
-                                return;
-                            }
-
-                            currentContent = content;
-
-                            for (ClipboardObserver observer : observers) {
-                                observer.clipboardChanged(content);
-                            }
-
-                        } catch (Exception e) {
-                            //Probably clipboard was not text
-                        }
+                    if (content.equals(currentContent)) {
+                        return;
                     }
-                };
-                cm.addPrimaryClipChangedListener(listener);
-            }
+
+                    currentContent = content;
+
+                    for (ClipboardObserver observer : observers) {
+                        observer.clipboardChanged(content);
+                    }
+
+                } catch (Exception e) {
+                    //Probably clipboard was not text
+                }
+            };
+            cm.addPrimaryClipChangedListener(listener);
         });
     }
 
     @SuppressWarnings("deprecation")
     public void setText(String text) {
         currentContent = text;
-        if (android.os.Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB) {
-            android.text.ClipboardManager clipboard = (android.text.ClipboardManager) context.getSystemService(Context.CLIPBOARD_SERVICE);
-            clipboard.setText(text);
-        } else {
-            cm.setText(text);
-        }
+        cm.setText(text);
     }
 
 }

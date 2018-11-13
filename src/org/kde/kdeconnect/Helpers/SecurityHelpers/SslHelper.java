@@ -42,6 +42,7 @@ import org.spongycastle.operator.jcajce.JcaContentSignerBuilder;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.net.Socket;
+import java.net.SocketException;
 import java.security.KeyStore;
 import java.security.MessageDigest;
 import java.security.PrivateKey;
@@ -136,7 +137,7 @@ public class SslHelper {
         return !cert.isEmpty();
     }
 
-    public static SSLContext getSslContext(Context context, String deviceId, boolean isDeviceTrusted) {
+    private static SSLContext getSslContext(Context context, String deviceId, boolean isDeviceTrusted) {
         //TODO: Cache
         try {
             // Get device private key
@@ -201,7 +202,7 @@ public class SslHelper {
 
     }
 
-    public static void configureSslSocket(SSLSocket socket, boolean isDeviceTrusted, boolean isClient) {
+    private static void configureSslSocket(SSLSocket socket, boolean isDeviceTrusted, boolean isClient) throws SocketException {
 
         socket.setEnabledProtocols(new String[]{"TLSv1"}); //Newer TLS versions are only supported on API 16+
 
@@ -210,18 +211,11 @@ public class SslHelper {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             supportedCiphers.add("TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384");  // API 20+
             supportedCiphers.add("TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256");  // API 20+
-            supportedCiphers.add("TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA");       // API 11+
-        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-            supportedCiphers.add("TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA");  // API 11+
-            supportedCiphers.add("SSL_RSA_WITH_RC4_128_SHA");            // API 9+
-            supportedCiphers.add("SSL_RSA_WITH_RC4_128_MD5");            // API 9+
-        } else {
-            // Following ciphers are for and due to old devices
-            supportedCiphers.add("SSL_RSA_WITH_RC4_128_SHA");  // API 9+
-            supportedCiphers.add("SSL_RSA_WITH_RC4_128_MD5");  // API 9+
-            supportedCiphers.add("TLS_DHE_RSA_WITH_AES_256_CBC_SHA"); // API 9+
         }
-        socket.setEnabledCipherSuites(supportedCiphers.toArray(new String[supportedCiphers.size()]));
+        supportedCiphers.add("TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA");       // API 11+
+        socket.setEnabledCipherSuites(supportedCiphers.toArray(new String[0]));
+
+        socket.setSoTimeout(1000);
 
         if (isClient) {
             socket.setUseClientMode(true);

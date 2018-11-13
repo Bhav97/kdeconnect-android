@@ -28,7 +28,6 @@ import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
-import android.view.KeyEvent;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
@@ -36,7 +35,6 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ListView;
-import android.widget.TextView;
 
 import org.kde.kdeconnect.BackgroundService;
 import org.kde.kdeconnect_tp.R;
@@ -60,75 +58,57 @@ public class CustomDevicesActivity extends AppCompatActivity {
         ThemeUtil.setUserPreferredTheme(this);
         setContentView(R.layout.custom_ip_list);
 
-        list = (ListView) findViewById(android.R.id.list);
+        list = findViewById(android.R.id.list);
         list.setOnItemClickListener(onClickListener);
 
         list.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, ipAddressList));
 
-        findViewById(android.R.id.button1).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                addNewDevice();
-            }
-        });
+        findViewById(android.R.id.button1).setOnClickListener(v -> addNewDevice());
 
-        EditText ipEntryBox = (EditText) findViewById(R.id.ip_edittext);
-        ipEntryBox.setOnEditorActionListener(new TextView.OnEditorActionListener() {
-            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
-                if (actionId == EditorInfo.IME_ACTION_SEND) {
-                    addNewDevice();
-                    return true;
-                }
-                return false;
+        EditText ipEntryBox = findViewById(R.id.ip_edittext);
+        ipEntryBox.setOnEditorActionListener((v, actionId, event) -> {
+            if (actionId == EditorInfo.IME_ACTION_SEND) {
+                addNewDevice();
+                return true;
             }
+            return false;
         });
     }
 
-    boolean dialogAlreadyShown = false;
-    private AdapterView.OnItemClickListener onClickListener = new AdapterView.OnItemClickListener() {
-        @Override
-        public void onItemClick(AdapterView<?> parent, View view, final int position, final long id) {
+    private boolean dialogAlreadyShown = false;
+    private final AdapterView.OnItemClickListener onClickListener = (parent, view, position, id) -> {
 
-            if (dialogAlreadyShown) {
-                return;
-            }
-
-            // remove touched item after confirmation
-            DialogInterface.OnClickListener confirmationListener = new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    switch (which) {
-                        case DialogInterface.BUTTON_POSITIVE:
-                            ipAddressList.remove(position);
-                            saveList();
-                            break;
-                        case DialogInterface.BUTTON_NEGATIVE:
-                            break;
-                    }
-                }
-            };
-
-            AlertDialog.Builder builder = new AlertDialog.Builder(CustomDevicesActivity.this);
-            builder.setMessage("Delete " + ipAddressList.get(position) + " ?");
-            builder.setPositiveButton("Yes", confirmationListener);
-            builder.setNegativeButton("No", confirmationListener);
-
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) { //DismissListener
-                dialogAlreadyShown = true;
-                builder.setOnDismissListener(new DialogInterface.OnDismissListener() {
-                    @Override
-                    public void onDismiss(DialogInterface dialog) {
-                        dialogAlreadyShown = false;
-                    }
-                });
-            }
-
-            builder.show();
+        if (dialogAlreadyShown) {
+            return;
         }
+
+        // remove touched item after confirmation
+        DialogInterface.OnClickListener confirmationListener = (dialog, which) -> {
+            switch (which) {
+                case DialogInterface.BUTTON_POSITIVE:
+                    ipAddressList.remove(position);
+                    saveList();
+                    break;
+                case DialogInterface.BUTTON_NEGATIVE:
+                    break;
+            }
+        };
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(CustomDevicesActivity.this);
+        builder.setMessage(getString(R.string.delete_custom_device, ipAddressList.get(position)));
+        builder.setPositiveButton(R.string.ok, confirmationListener);
+        builder.setNegativeButton(R.string.cancel, confirmationListener);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) { //DismissListener
+            dialogAlreadyShown = true;
+            builder.setOnDismissListener(dialog -> dialogAlreadyShown = false);
+        }
+
+        builder.show();
     };
 
     private void addNewDevice() {
-        EditText ipEntryBox = (EditText) findViewById(R.id.ip_edittext);
+        EditText ipEntryBox = findViewById(R.id.ip_edittext);
         String enteredText = ipEntryBox.getText().toString().trim();
         if (!enteredText.isEmpty()) {
             // don't add empty string (after trimming)

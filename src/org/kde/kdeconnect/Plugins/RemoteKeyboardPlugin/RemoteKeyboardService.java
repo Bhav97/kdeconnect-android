@@ -54,14 +54,14 @@ public class RemoteKeyboardService
      * Whether input is currently accepted
      * Implies visible == true
      */
-    public boolean active = false;
+    private boolean active = false;
 
     /**
      * Whether this InputMethod is currently visible.
      */
     public boolean visible = false;
 
-    KeyboardView inputView = null;
+    private KeyboardView inputView = null;
 
     Handler handler;
 
@@ -94,11 +94,6 @@ public class RemoteKeyboardService
         super.onDestroy();
         instance = null;
         Log.d("RemoteKeyboardService", "Destroyed");
-    }
-
-    @Override
-    public void onInitializeInterface() {
-        super.onInitializeInterface();
     }
 
     @Override

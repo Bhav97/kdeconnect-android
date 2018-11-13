@@ -28,8 +28,6 @@ import org.json.JSONObject;
 import org.kde.kdeconnect.Backends.LanBackend.LanLink;
 import org.kde.kdeconnect.Backends.LanBackend.LanLinkProvider;
 import org.mockito.Mockito;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -39,15 +37,15 @@ import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 
-public class LanLinkTest extends AndroidTestCase {
+class LanLinkTest extends AndroidTestCase {
 
-    LanLink badLanLink;
-    LanLink goodLanLink;
+    private LanLink badLanLink;
+    private LanLink goodLanLink;
 
-    OutputStream badOutputStream;
-    OutputStream goodOutputStream;
+    private OutputStream badOutputStream;
+    private OutputStream goodOutputStream;
 
-    Device.SendPacketStatusCallback callback;
+    private Device.SendPacketStatusCallback callback;
 
     @Override
     protected void setUp() throws Exception {
@@ -75,11 +73,6 @@ public class LanLinkTest extends AndroidTestCase {
 
         goodLanLink = new LanLink(getContext(), "testDevice", linkProvider, socketMock, LanLink.ConnectionStarted.Remotely);
         badLanLink = new LanLink(getContext(), "testDevice", linkProvider, socketBadMock, LanLink.ConnectionStarted.Remotely);
-    }
-
-    @Override
-    protected void tearDown() throws Exception {
-        super.tearDown();
     }
 
     public void testSendPacketSuccess() throws JSONException {
@@ -115,13 +108,13 @@ public class LanLinkTest extends AndroidTestCase {
         class Downloader extends Thread {
 
             NetworkPacket np;
-            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 
-            public void setNetworkPacket(NetworkPacket networkPacket) {
+            void setNetworkPacket(NetworkPacket networkPacket) {
                 this.np = networkPacket;
             }
 
-            public ByteArrayOutputStream getOutputStream() {
+            ByteArrayOutputStream getOutputStream() {
                 return outputStream;
             }
 
@@ -137,11 +130,7 @@ public class LanLinkTest extends AndroidTestCase {
                         socket.connect(new InetSocketAddress(address.getAddress(), tcpPort));
                         np.setPayload(socket.getInputStream(), np.getPayloadSize());
                     } catch (Exception e) {
-                        try {
-                            socket.close();
-                        } catch (Exception ignored) {
-                            throw ignored;
-                        }
+                        socket.close();
                         e.printStackTrace();
                         Log.e("KDE/LanLinkTest", "Exception connecting to remote socket");
                         throw e;
@@ -204,50 +193,34 @@ public class LanLinkTest extends AndroidTestCase {
         Mockito.when(sharePacket.getType()).thenReturn("kdeconnect.share");
         Mockito.when(sharePacket.hasPayload()).thenReturn(true);
         Mockito.when(sharePacket.hasPayloadTransferInfo()).thenReturn(true);
-        Mockito.doAnswer(new Answer() {
-            @Override
-            public Object answer(InvocationOnMock invocationOnMock) throws Throwable {
-                return sharePacketJson.toString();
-            }
-        }).when(sharePacket).serialize();
+        Mockito.doAnswer(invocationOnMock -> sharePacketJson.toString()).when(sharePacket).serialize();
         Mockito.when(sharePacket.getPayload()).thenReturn(new ByteArrayInputStream(data));
         Mockito.when(sharePacket.getPayloadSize()).thenReturn((long) data.length);
-        Mockito.doAnswer(new Answer() {
-            @Override
-            public Object answer(InvocationOnMock invocationOnMock) throws Throwable {
-                return sharePacketJson.getJSONObject("payloadTransferInfo");
-            }
-        }).when(sharePacket).getPayloadTransferInfo();
-        Mockito.doAnswer(new Answer() {
-            @Override
-            public Object answer(InvocationOnMock invocationOnMock) throws Throwable {
-                JSONObject object = (JSONObject) invocationOnMock.getArguments()[0];
+        Mockito.doAnswer(invocationOnMock -> sharePacketJson.getJSONObject("payloadTransferInfo")).when(sharePacket).getPayloadTransferInfo();
+        Mockito.doAnswer(invocationOnMock -> {
+            JSONObject object = (JSONObject) invocationOnMock.getArguments()[0];
 
-                sharePacketJson.put("payloadTransferInfo", object);
-                return null;
-            }
+            sharePacketJson.put("payloadTransferInfo", object);
+            return null;
         }).when(sharePacket).setPayloadTransferInfo(Mockito.any(JSONObject.class));
 
-        Mockito.doAnswer(new Answer() {
-            @Override
-            public Object answer(InvocationOnMock invocationOnMock) throws Throwable {
+        Mockito.doAnswer(invocationOnMock -> {
 
-                Log.e("LanLinkTest", "Write to stream");
-                String stringNetworkPacket = new String((byte[]) invocationOnMock.getArguments()[0]);
-                final NetworkPacket np = NetworkPacket.unserialize(stringNetworkPacket);
+            Log.e("LanLinkTest", "Write to stream");
+            String stringNetworkPacket = new String((byte[]) invocationOnMock.getArguments()[0]);
+            final NetworkPacket np = NetworkPacket.unserialize(stringNetworkPacket);
 
-                downloader.setNetworkPacket(np);
-                downloader.start();
+            downloader.setNetworkPacket(np);
+            downloader.start();
 
-                return stringNetworkPacket.length();
-            }
+            return stringNetworkPacket.length();
         }).when(goodOutputStream).write(Mockito.any(byte[].class));
 
         goodLanLink.sendPacket(sharePacket, callback);
 
         try {
             // Wait 1 secs for downloader to finish (if some error, it will continue and assert will fail)
-            downloader.join(1 * 1000);
+            downloader.join(1000);
         } catch (Exception e) {
             e.printStackTrace();
             throw e;

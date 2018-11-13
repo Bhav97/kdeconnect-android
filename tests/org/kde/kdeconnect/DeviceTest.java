@@ -47,7 +47,7 @@ import java.security.KeyPairGenerator;
 import java.security.cert.X509Certificate;
 import java.util.Date;
 
-public class DeviceTest extends AndroidTestCase {
+class DeviceTest extends AndroidTestCase {
 
     // Creating a paired device before each test case
     @Override
@@ -117,7 +117,7 @@ public class DeviceTest extends AndroidTestCase {
         assertEquals(device.getDeviceId(), "testDevice");
         assertEquals(device.getDeviceType(), Device.DeviceType.Phone);
         assertEquals(device.getName(), "Test Device");
-        assertEquals(device.isPaired(), true);
+        assertTrue(device.isPaired());
 
     }
 
@@ -166,10 +166,10 @@ public class DeviceTest extends AndroidTestCase {
             e.printStackTrace();
         }
 
-        assertEquals(device.isPaired(), true);
+        assertTrue(device.isPaired());
 
         SharedPreferences preferences = getContext().getSharedPreferences("trusted_devices", Context.MODE_PRIVATE);
-        assertEquals(preferences.getBoolean(device.getDeviceId(), false), true);
+        assertTrue(preferences.getBoolean(device.getDeviceId(), false));
 
         SharedPreferences settings = getContext().getSharedPreferences(device.getDeviceId(), Context.MODE_PRIVATE);
         assertEquals(settings.getString("deviceName", "Unknown device"), "Unpaired Test Device");
@@ -250,10 +250,10 @@ public class DeviceTest extends AndroidTestCase {
             e.printStackTrace();
         }
 
-        assertEquals(device.isPaired(), true);
+        assertTrue(device.isPaired());
 
         SharedPreferences preferences = getContext().getSharedPreferences("trusted_devices", Context.MODE_PRIVATE);
-        assertEquals(preferences.getBoolean(device.getDeviceId(), false), true);
+        assertTrue(preferences.getBoolean(device.getDeviceId(), false));
 
         SharedPreferences settings = getContext().getSharedPreferences(device.getDeviceId(), Context.MODE_PRIVATE);
         assertEquals(settings.getString("deviceName", "Unknown device"), "Unpaired Test Device");
@@ -270,10 +270,10 @@ public class DeviceTest extends AndroidTestCase {
 
         device.unpair();
 
-        assertEquals(device.isPaired(), false);
+        assertFalse(device.isPaired());
 
         SharedPreferences preferences = getContext().getSharedPreferences("trusted_devices", Context.MODE_PRIVATE);
-        assertEquals(preferences.getBoolean(device.getDeviceId(), false), false);
+        assertFalse(preferences.getBoolean(device.getDeviceId(), false));
 
     }
 

@@ -18,7 +18,7 @@ package org.kde.kdeconnect.Plugins.SharePlugin;
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
+ */
 
 import android.app.Notification;
 import android.app.NotificationManager;
@@ -32,7 +32,6 @@ import android.net.Uri;
 import android.os.Build;
 import android.preference.PreferenceManager;
 import android.support.v4.app.NotificationCompat;
-import android.support.v4.app.TaskStackBuilder;
 import android.support.v4.content.FileProvider;
 
 import org.kde.kdeconnect.Device;
@@ -40,22 +39,26 @@ import org.kde.kdeconnect.Helpers.NotificationHelper;
 import org.kde.kdeconnect_tp.R;
 
 import java.io.File;
-import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
 
-public class ShareNotification {
-
+class ShareNotification {
     private final String filename;
-    private NotificationManager notificationManager;
-    private int notificationId;
+    private final NotificationManager notificationManager;
+    private final int notificationId;
     private NotificationCompat.Builder builder;
-    private Device device;
+    private final Device device;
+
+    //https://documentation.onesignal.com/docs/android-customizations#section-big-picture
+    private static final int bigImageWidth = 1440;
+    private static final int bigImageHeight = 720;
 
     public ShareNotification(Device device, String filename) {
         this.device = device;
         this.filename = filename;
         notificationId = (int) System.currentTimeMillis();
         notificationManager = (NotificationManager) device.getContext().getSystemService(Context.NOTIFICATION_SERVICE);
-        builder = new NotificationCompat.Builder(device.getContext())
+        builder = new NotificationCompat.Builder(device.getContext(), NotificationHelper.Channels.FILETRANSFER)
                 .setContentTitle(device.getContext().getResources().getString(R.string.incoming_file_title, device.getName()))
                 .setContentText(device.getContext().getResources().getString(R.string.incoming_file_text, filename))
                 .setTicker(device.getContext().getResources().getString(R.string.incoming_file_title, device.getName()))
@@ -80,7 +83,7 @@ public class ShareNotification {
 
     public void setFinished(boolean success) {
         String message = success ? device.getContext().getResources().getString(R.string.received_file_title, device.getName()) : device.getContext().getResources().getString(R.string.received_file_fail_title, device.getName());
-        builder = new NotificationCompat.Builder(device.getContext());
+        builder = new NotificationCompat.Builder(device.getContext(), NotificationHelper.Channels.DEFAULT);
         builder.setContentTitle(message)
                 .setTicker(message)
                 .setSmallIcon(android.R.drawable.stat_sys_download_done)
@@ -105,15 +108,27 @@ public class ShareNotification {
 
         //If it's an image, try to show it in the notification
         if (mimeType.startsWith("image/")) {
-            try {
-                Bitmap image = BitmapFactory.decodeStream(device.getContext().getContentResolver().openInputStream(destinationUri));
+            //https://developer.android.com/topic/performance/graphics/load-bitmap
+            final BitmapFactory.Options options = new BitmapFactory.Options();
+            options.inJustDecodeBounds = true;
+
+            try (InputStream decodeBoundsInputStream = device.getContext().getContentResolver().openInputStream(destinationUri);
+                 InputStream decodeInputStream = device.getContext().getContentResolver().openInputStream(destinationUri)) {
+                BitmapFactory.decodeStream(decodeBoundsInputStream, null, options);
+
+                options.inJustDecodeBounds = false;
+                options.inSampleSize = calculateInSampleSize(options, bigImageWidth, bigImageHeight);
+
+                Bitmap image = BitmapFactory.decodeStream(decodeInputStream, null, options);
                 if (image != null) {
                     builder.setLargeIcon(image);
                     builder.setStyle(new NotificationCompat.BigPictureStyle()
-                        .bigPicture(image));
+                            .bigPicture(image));
                 }
-            } catch (FileNotFoundException ignored) {}
+            } catch (IOException ignored) {
+            }
         }
+
         if (!"file".equals(destinationUri.getScheme())) {
             return;
         }
@@ -135,18 +150,39 @@ public class ShareNotification {
         }
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         shareIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        TaskStackBuilder stackBuilder = TaskStackBuilder.create(device.getContext());
-        stackBuilder.addNextIntent(intent);
-        PendingIntent resultPendingIntent = stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
+
+        PendingIntent resultPendingIntent = PendingIntent.getActivity(
+                device.getContext(),
+                0,
+                intent,
+                PendingIntent.FLAG_UPDATE_CURRENT
+        );
+
         builder.setContentText(device.getContext().getResources().getString(R.string.received_file_text, filename))
                 .setContentIntent(resultPendingIntent);
 
         shareIntent = Intent.createChooser(shareIntent,
                 device.getContext().getString(R.string.share_received_file, destinationUri.getLastPathSegment()));
-        PendingIntent sharePendingIntent = PendingIntent.getActivity(device.getContext(), 0,
+        PendingIntent sharePendingIntent = PendingIntent.getActivity(device.getContext(), (int) System.currentTimeMillis(),
                 shareIntent, PendingIntent.FLAG_UPDATE_CURRENT);
         NotificationCompat.Action.Builder shareAction = new NotificationCompat.Action.Builder(
                 R.drawable.ic_share_white, device.getContext().getString(R.string.share), sharePendingIntent);
         builder.addAction(shareAction.build());
+    }
+
+    private int calculateInSampleSize(BitmapFactory.Options options, int targetWidth, int targetHeight) {
+        int inSampleSize = 1;
+
+        if (options.outHeight > targetHeight || options.outWidth > targetWidth) {
+            final int halfHeight = options.outHeight / 2;
+            final int halfWidth = options.outWidth / 2;
+
+            while ((halfHeight / inSampleSize) >= targetHeight
+                    && (halfWidth / inSampleSize) >= targetWidth) {
+                inSampleSize *= 2;
+            }
+        }
+
+        return inSampleSize;
     }
 }

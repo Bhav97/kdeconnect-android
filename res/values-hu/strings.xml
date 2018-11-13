@@ -1,7 +1,6 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
   <string name="pref_plugin_telephony">Telefon értesítő</string>
-  <string name="pref_plugin_telephony_desc">Értesítés küldése SMS-hez és hívásokhoz</string>
   <string name="pref_plugin_battery">Akkumulátor jelentés</string>
   <string name="pref_plugin_battery_desc">Akkumulátorállapot időszakos jelentése</string>
   <string name="pref_plugin_sftp">Fájlrendszer kifejtés</string>
@@ -29,6 +28,14 @@
     <item>Default</item>
     <item>Above Default</item>
     <item>Fastest</item>
+  </string-array>
+  <string-array name="mousepad_acceleration_profile_entries">
+    <item>No Acceleration</item>
+    <item>Weakest</item>
+    <item>Weaker</item>
+    <item>Medium</item>
+    <item>Stronger</item>
+    <item>Strongest</item>
   </string-array>
   <string name="category_connected_devices">Csatlakoztatott eszközök</string>
   <string name="category_remembered_devices">Megjegyzett eszközök</string>
@@ -63,7 +70,6 @@
   <string name="device">Eszköz</string>
   <string name="pair_device">Eszköz párosítása</string>
   <string name="remote_control">Távirányító</string>
-  <string name="settings">KDE csatlakozás beállítások</string>
   <string name="mpris_play">Lejátszás</string>
   <string name="mpris_previous">Előző</string>
   <string name="mpris_rew">Visszatekerés</string>
@@ -77,7 +83,6 @@
     <item>1 minute</item>
     <item>2 minutes</item>
   </string-array>
-  <string name="share_to">Megosztás…</string>
   <string name="protocol_version_older">Ez az eszköz egy régi protokollverziót használ</string>
   <string name="protocol_version_newer">Ez az eszköz egy újabb protokollverziót használ</string>
   <string name="general_settings">Általános beállítások</string>

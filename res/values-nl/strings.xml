@@ -1,7 +1,10 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
+  <string name="kde_connect">KDE Connect</string>
+  <string name="foreground_notification_no_devices">Niet verbonden met enig apparaat</string>
+  <string name="foreground_notification_devices">Verbonden met: %s</string>
   <string name="pref_plugin_telephony">Telefoniemelder</string>
-  <string name="pref_plugin_telephony_desc">Stuur meldingen voor SMS en oproepen</string>
+  <string name="pref_plugin_telephony_desc">Stuur meldingen voor inkomende oproepen</string>
   <string name="pref_plugin_battery">Batterijrapportage</string>
   <string name="pref_plugin_battery_desc">Rapporteer periodiek de status van de batterij</string>
   <string name="pref_plugin_sftp">Bestandssysteem blootstellen</string>
@@ -10,12 +13,16 @@
   <string name="pref_plugin_clipboard_desc">De inhoud van het klembord delen</string>
   <string name="pref_plugin_mousepad">Invoer op afstand</string>
   <string name="pref_plugin_mousepad_desc">Uw telefoon of tablet gebruiken als een touchpad en toetsenbord</string>
+  <string name="pref_plugin_presenter">Presentatie op afstand</string>
+  <string name="pref_plugin_presenter_desc">Uw apparaat gebruiken om dia\'s te wisselen in een presentatie</string>
   <string name="pref_plugin_remotekeyboard">Toetsaanslagen van afstand ontvangen</string>
   <string name="pref_plugin_remotekeyboard_desc">Toetsaanslaggebeurtenissen ontvangen van externe apparaten</string>
   <string name="pref_plugin_mpris">Bediening van multimedia</string>
   <string name="pref_plugin_mpris_desc">Biedt een afstandsbediening voor uw mediaspeler</string>
   <string name="pref_plugin_runcommand">Commando uitvoeren</string>
   <string name="pref_plugin_runcommand_desc">Commando\'s afvuren op afstand vanaf uw telefoon of tablet</string>
+  <string name="pref_plugin_contacts">Synchronisator van contactpersonen</string>
+  <string name="pref_plugin_contacts_desc">Staat synchronisatie van het contactpersonenboek van het apparaat toe</string>
   <string name="pref_plugin_ping">Ping</string>
   <string name="pref_plugin_ping_desc">Pings verzenden en ontvangen</string>
   <string name="pref_plugin_notifications">Synchronisatie van meldingen</string>
@@ -30,6 +37,7 @@
   <string name="cancel">Annuleren</string>
   <string name="open_settings">Instellingen openen</string>
   <string name="no_permissions">U moet toestemming geven voor toegang tot meldingen</string>
+  <string name="no_permission_mprisreceiver">Om in staat te zijn uw mediaspelers te besturen moet u toegan geven tot de meldingen</string>
   <string name="send_ping">Ping verzenden</string>
   <string name="open_mpris_controls">Bediening van multimedia</string>
   <string name="remotekeyboard_editing_only_title">Behandel toetsen op afstand alleen bij bewerken</string>
@@ -41,6 +49,7 @@
   <string name="mousepad_double_tap_settings_title">Tikactie met twee vingers instellen</string>
   <string name="mousepad_triple_tap_settings_title">Tikactie met drie vingers instellen</string>
   <string name="mousepad_sensitivity_settings_title">Gevoeligheid van touchpad instellen</string>
+  <string name="mousepad_acceleration_profile_settings_title">Aanwijzerversnelling instellen</string>
   <string name="mousepad_scroll_direction_title">Schuifrichting omdraaien</string>
   <string-array name="mousepad_tap_entries">
     <item>Rechter muisklik</item>
@@ -53,6 +62,14 @@
     <item>Standaard</item>
     <item>Boven standaard</item>
     <item>Snelste</item>
+  </string-array>
+  <string-array name="mousepad_acceleration_profile_entries">
+    <item>Geen versnelling</item>
+    <item>Zwakste</item>
+    <item>Zwakker</item>
+    <item>Middel</item>
+    <item>Sterker</item>
+    <item>Sterkst</item>
   </string-array>
   <string name="category_connected_devices">Verbonden apparaten</string>
   <string name="category_not_paired_devices">Beschikbare apparaten</string>
@@ -106,7 +123,7 @@
   <string name="device">Apparaat</string>
   <string name="pair_device">Apparaat voor paar</string>
   <string name="remote_control">Afstandsbediening</string>
-  <string name="settings">Instellingen van KDE Connect</string>
+  <string name="settings">Instellingen</string>
   <string name="mpris_play">Afspelen</string>
   <string name="mpris_pause">Pauzeren</string>
   <string name="mpris_previous">Vorige</string>
@@ -116,7 +133,7 @@
   <string name="mpris_volume">Volume</string>
   <string name="mpris_settings">Instellingen voor multimedia</string>
   <string name="mpris_time_settings_title">Knoppen vooruit/terug</string>
-  <string name="mpris_time_settings_summary">Pas de tijd aan om snel voorwaarts/terug te gaan bij indrukken.</string>
+  <string name="mpris_time_settings_summary">Pas de tijd aan om snel voorwaarts/terug te gaan bij indrukken</string>
   <string-array name="mpris_time_entries">
     <item>10 seconden</item>
     <item>20 seconden</item>
@@ -125,7 +142,7 @@
     <item>2 minuten</item>
   </string-array>
   <string name="mpris_notification_settings_title">Mediabesturingsmelding tonen</string>
-  <string name="mpris_notification_settings_summary">Staat besturing van uw mediaspelers toe zonder KDE Connect te openen.</string>
+  <string name="mpris_notification_settings_summary">Staat besturing van uw mediaspelers toe zonder KDE Connect te openen</string>
   <string name="share_to">Delen met...</string>
   <string name="protocol_version_older">Dit apparaat gebruikt een oude protocolversie</string>
   <string name="protocol_version_newer">Dit apparaat gebruikt een nieuwere protocolversie</string>
@@ -140,6 +157,7 @@
   <string name="pair_device_action">Een paar maken met een nieuw apparaat</string>
   <string name="unpair_device_action">Paar %s uit elkaar halen</string>
   <string name="custom_device_list">Voeg apparaten toe per IP-adres</string>
+  <string name="delete_custom_device">%s verwijderen?</string>
   <string name="share_notification_preference">Luidruchtige meldingen</string>
   <string name="share_notification_preference_summary">Vibreer en speel een geluidje bij ontvangen van een bestand</string>
   <string name="share_destination_customize">De bestemmingsmap aanpassen</string>
@@ -167,7 +185,7 @@
   <string name="device_paired">Gepaard apparaat</string>
   <string name="device_rename_title">Apparaat hernoemen</string>
   <string name="device_rename_confirm">Hernoemen</string>
-  <string name="refresh">Verversen</string>
+  <string name="refresh">Vernieuwen</string>
   <string name="unreachable_description">Dit gepaarde apparaat is niet bereikbaar. Ga na dat het is verbonden met uw zelfde netwerk.</string>
   <string name="on_data_message">Het lijkt of op een mobiele gegevensverbinding zit. KDE Connect werkt alleen op locale netwerken.</string>
   <string name="no_file_browser">Er zijn geen bestandsbrowsers geïnstalleerd.</string>
@@ -176,6 +194,7 @@
   <string name="plugin_not_supported">Deze plug-in wordt niet ondersteund door het apparaat</string>
   <string name="findmyphone_title">Zoek mijn telefoon</string>
   <string name="findmyphone_title_tablet">Zoek mijn tablet</string>
+  <string name="findmyphone_title_tv">Zoek mijn tv</string>
   <string name="findmyphone_description">Laat dit apparaat bellen zodat u het kunt vinden</string>
   <string name="findmyphone_found">Gevonden</string>
   <string name="open">Openen</string>
@@ -190,17 +209,47 @@
   <string name="telepathy_permission_explanation">Om een SMS te lezen of te schrijven vanaf uw bureaublad moet u toestemming geven tot SMS</string>
   <string name="telephony_permission_explanation">Om telefoonoproepen en SMS te zien vanaf het bureaublad moet u toestemming geven tot telefoonoproepen en SMS</string>
   <string name="telephony_optional_permission_explanation">Om een naam van een contactpersoon te zien in plaats van een telefoonnummer moet u toegang geven tot de contacten in uw telefoon</string>
+  <string name="contacts_permission_explanation">Om uw contactpersoennboek te delen met het bureaublad moet u contacten rechten geven</string>
   <string name="select_ringtone">Selecteer een ringtone</string>
   <string name="telephony_pref_blocked_title">Geblokkeerde nummers</string>
   <string name="telephony_pref_blocked_dialog_desc">Geen oproepen en SMSen vanaf deze nummers tonen. Specificeer één nummer per regel</string>
   <string name="mpris_coverart_description">Cover-illustratie van huidige media</string>
   <string name="device_icon_description">Apparaatpictogram</string>
   <string name="settings_icon_description">Pictogram voor instellingen</string>
+  <string name="presenter_fullscreen">Volledig scherm</string>
+  <string name="presenter_exit">Presentatie beëindigen</string>
+  <string name="presenter_lock_tip">U kunt uw apparaat vergrendelen om de volumetoetsen te gebruiken als knoppen voort vorige/volgende</string>
   <string name="add_command">Een commando toevoegen</string>
-  <string name="addcommand_name">Naam</string>
-  <string name="addcommand_command">Commando</string>
-  <string name="command_confirm_needed">U zult het commando moeten bevestigen op het bureaublad</string>
   <string name="addcommand_explanation">Er zijn geen commando\'s geregistreerd</string>
   <string name="addcommand_explanation2">U kunt nieuwe commando\'s in de instellingen voor het KDE connect-systeem toevoegen</string>
+  <string name="add_command_description">U kunt commando\'s toevoegen op het bureaublad</string>
+  <string name="pref_plugin_mprisreceiver">Besturing van mediaspeler</string>
+  <string name="pref_plugin_mprisreceiver_desc">Uw mediaspelers op uw telefoon besturen vanaf een andere apparaat</string>
   <string name="dark_theme">Donker themea</string>
+  <string name="notification_channel_default">Overige meldingen</string>
+  <string name="notification_channel_persistent">Blijvende indicator</string>
+  <string name="notification_channel_media_control">Besturing van media</string>
+  <string name="notification_channel_filetransfer">Bestandsoverdracht</string>
+  <string name="mpris_stop">Stop de huidige speler</string>
+  <string name="copy_url_to_clipboard">URL-adres kopiëren naar klembord</string>
+  <string name="clipboard_toast">Gekopieerd naar klembord</string>
+  <string name="runcommand_notreachable">Apparaat is niet bereikbaar</string>
+  <string name="runcommand_notpaired">Apparaat is niet gepaard</string>
+  <string name="runcommand_nosuchdevice">Dit apparaat bestaat niet</string>
+  <string name="runcommand_noruncommandplugin">Dit apparaat heeft de \"Run Command Plugin\" niet ingeschakeld</string>
+  <string name="pref_plugin_findremotedevice">Apparaat op afstand zoeken</string>
+  <string name="pref_plugin_findremotedevice_desc">Maak een oproep naar uw apparaat op afstand</string>
+  <string name="ring">Oproep doen</string>
+  <string name="pref_plugin_systemvolume">Systeemvolume</string>
+  <string name="pref_plugin_systemvolume_desc">Bestuur het systeemvolume vanaf uw apparaat op afstand</string>
+  <string name="mute">Dempen</string>
+  <string name="all">Alles</string>
+  <string name="devices">Apparaten</string>
+  <string name="settings_rename">Apparaatnaam</string>
+  <string name="settings_dark_mode">Donker themea</string>
+  <string name="settings_more_settings_title">Meer instellingen</string>
+  <string name="settings_more_settings_text">Instellingen per apparaat kunnen gevonden worden onder \'Plug-in-instellingen\' vanuit een apparaat.</string>
+  <string name="setting_persistent_notification">Blijvende melding tonen</string>
+  <string name="setting_persistent_notification_oreo_description">Vereist door Android sinds Android 8.0</string>
+  <string name="setting_persistent_notification_pie_description">Sinds Android 9.0 kunnen deze meldingen alleen geminimaliseerd worden door er lang op te tikken</string>
 </resources>

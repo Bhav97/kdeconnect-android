@@ -1,7 +1,6 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
   <string name="pref_plugin_telephony">Notificator de telefonie</string>
-  <string name="pref_plugin_telephony_desc">Trimite notificări pentru SMS-uri și apeluri</string>
   <string name="pref_plugin_battery">Raport acumulator</string>
   <string name="pref_plugin_battery_desc">Raportează periodic starea acumulatorului</string>
   <string name="pref_plugin_sftp">Expunere sistem de fișiere</string>
@@ -30,6 +29,14 @@
     <item>Above Default</item>
     <item>Fastest</item>
   </string-array>
+  <string-array name="mousepad_acceleration_profile_entries">
+    <item>No Acceleration</item>
+    <item>Weakest</item>
+    <item>Weaker</item>
+    <item>Medium</item>
+    <item>Stronger</item>
+    <item>Strongest</item>
+  </string-array>
   <string name="category_connected_devices">Dispozitive conectate</string>
   <string name="category_remembered_devices">Dispozitive memorizate</string>
   <string name="plugins_failed_to_load">Încărcarea extensiilor a eșuat (atingeți pentru mai multe informații):</string>
@@ -54,7 +61,6 @@
   <string name="device">Dispozitiv</string>
   <string name="pair_device">Asociază dispozitiv</string>
   <string name="remote_control">Control de la distanță</string>
-  <string name="settings">Configurări KDE Connect</string>
   <string name="mpris_play">Redă</string>
   <string name="mpris_previous">Precedent</string>
   <string name="mpris_rew">Derulează</string>
@@ -68,7 +74,6 @@
     <item>1 minute</item>
     <item>2 minutes</item>
   </string-array>
-  <string name="share_to">Partajează cu...</string>
   <string name="protocol_version_older">Acest dispozitiv folosește o versiune veche a protocolului</string>
   <string name="protocol_version_newer">Acest dispozitiv folosește o versiune mai nouă a protocolului</string>
   <string name="general_settings">Configurări generale</string>

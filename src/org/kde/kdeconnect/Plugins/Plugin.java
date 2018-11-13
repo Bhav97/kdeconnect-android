@@ -23,7 +23,6 @@ package org.kde.kdeconnect.Plugins;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.drawable.Drawable;
@@ -31,13 +30,12 @@ import android.os.Build;
 import android.support.annotation.StringRes;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
-import android.view.View;
 import android.widget.Button;
 
 import org.kde.kdeconnect.Device;
 import org.kde.kdeconnect.NetworkPacket;
+import org.kde.kdeconnect.UserInterface.DeviceSettingsActivity;
 import org.kde.kdeconnect.UserInterface.PluginSettingsActivity;
-import org.kde.kdeconnect.UserInterface.SettingsActivity;
 import org.kde.kdeconnect_tp.R;
 
 public abstract class Plugin {
@@ -128,9 +126,9 @@ public abstract class Plugin {
      * If hasSettings returns true, this will be called when the user
      * wants to access this plugin preferences and should launch some
      * kind of interface. The default implementation will launch a
-     * SettingsActivity with content from "yourplugin"_preferences.xml.
+     * PluginSettingsActivity with content from "yourplugin"_preferences.xml.
      */
-    public void startPreferencesActivity(SettingsActivity parentActivity) {
+    public void startPreferencesActivity(DeviceSettingsActivity parentActivity) {
         Intent intent = new Intent(parentActivity, PluginSettingsActivity.class);
         intent.putExtra("plugin_display_name", getDisplayName());
         intent.putExtra("plugin_key", getPluginKey());
@@ -202,20 +200,15 @@ public abstract class Plugin {
         if (!hasMainActivity()) return null;
         Button b = new Button(activity);
         b.setText(getActionName());
-        b.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                startMainActivity(activity);
-            }
-        });
+        b.setOnClickListener(view -> startMainActivity(activity));
         return b;
     }
 
-    public String[] getRequiredPermissions() {
+    protected String[] getRequiredPermissions() {
         return new String[0];
     }
 
-    public String[] getOptionalPermissions() {
+    protected String[] getOptionalPermissions() {
         return new String[0];
     }
 
@@ -225,7 +218,7 @@ public abstract class Plugin {
         return (result == PackageManager.PERMISSION_GRANTED);
     }
 
-    protected boolean arePermissionsGranted(String[] permissions) {
+    private boolean arePermissionsGranted(String[] permissions) {
         for (String permission : permissions) {
             if (!isPermissionGranted(permission)) {
                 return false;
@@ -238,21 +231,13 @@ public abstract class Plugin {
         return requestPermissionDialog(activity, new String[]{permissions}, reason);
     }
 
-    protected AlertDialog requestPermissionDialog(final Activity activity, final String[] permissions, @StringRes int reason) {
+    private AlertDialog requestPermissionDialog(final Activity activity, final String[] permissions, @StringRes int reason) {
         return new AlertDialog.Builder(activity)
                 .setTitle(getDisplayName())
                 .setMessage(reason)
-                .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
-                        ActivityCompat.requestPermissions(activity, permissions, 0);
-                    }
-                })
-                .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
-                        //Do nothing
-                    }
+                .setPositiveButton(R.string.ok, (dialogInterface, i) -> ActivityCompat.requestPermissions(activity, permissions, 0))
+                .setNegativeButton(R.string.cancel, (dialogInterface, i) -> {
+                    //Do nothing
                 })
                 .create();
     }
